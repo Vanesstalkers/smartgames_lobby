@@ -155,6 +155,11 @@ const init = async () => {
         this.$set(this.$root.state, 'currentUser', userId);
         this.$set(this.$root.state, 'currentLobby', lobbyId);
         this.$set(this.$root.state, 'lobbyOrigin', searchParams.get('lobbyOrigin'));
+
+        if (window !== window.parent) {
+          const iframeCode = searchParams.get('iframeCode');
+          window.parent.postMessage({ emit: { name: 'iframeAlive', data: { iframeCode } } }, '*');
+        }
       },
     },
   };
