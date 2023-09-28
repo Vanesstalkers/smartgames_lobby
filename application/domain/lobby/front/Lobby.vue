@@ -313,6 +313,7 @@ export default {
       for (const { event, data } of events) {
         event(data);
       }
+      window.iframeEvents = [];
     };
     this.state.emit.hideGameIframe = () => {
       this.iframeScr = '';
