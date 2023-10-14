@@ -18,8 +18,6 @@
     this.preventSaveFields(['chat']);
 
     // !!! убрать после разработки соответствующих игр
-    if (!this.gameServers.auto)
-      this.set({ gameServers: { auto: { title: 'Авто', icon: ['fas', 'car'], active: false } } });
     if (!this.gameServers.bank)
       this.set({ gameServers: { bank: { title: 'Банк', icon: ['fas', 'money-bill'], active: false } } });
   }

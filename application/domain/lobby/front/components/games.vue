@@ -4,14 +4,14 @@
       <div class="breadcrumbs">
         <span
           :class="['select-btn', deckType ? 'active selected' : '']"
-          @click="selectDeckType(null), selectGameType(null), selectGameConfig(null)"
+          @click="selectGameConfig(null), selectGameType(null), selectDeckType(null)"
         >
           {{ deckMap[deckType]?.title || 'Выбор колоды:' }}
         </span>
         <span
           v-if="deckType"
           :class="['select-btn', gameType ? 'active selected' : '']"
-          @click="selectGameType(null), selectGameConfig(null)"
+          @click="selectGameConfig(null), selectGameType(null)"
         >
           {{ gameTypeMap[gameType]?.title || 'Выбор типа игры:' }}
         </span>
@@ -56,7 +56,7 @@
         </div>
       </div>
 
-      <div v-if="deckType === 'release' && gameType && gameConfig" class="game-start-block release-game-start">
+      <div v-if="gameConfig" class="game-start-block">
         <span class="timer">
           <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
           {{ gameTimer }}
@@ -77,12 +77,12 @@
             </div>
             <div class="game-config-info">
               <span>
-                <font-awesome-icon :icon="deckMap[game.deckType].icon" />
+                <font-awesome-icon :icon="deckMap[game.deckType].icon" :style="{ marginRight: '2px' }" />
                 <font-awesome-icon :icon="deckMap[game.deckType].games[game.gameType].icon" />
                 {{ deckMap[game.deckType].games[game.gameType].items[game.gameConfig].title }}
               </span>
               <span style="margin-left: 10px">
-                <font-awesome-icon :icon="['fas', 'stopwatch']" /> {{ game.gameTimer }} сек
+                <font-awesome-icon :icon="['fas', 'stopwatch']" /> {{ game.gameTimer.DEFAULT }} сек
               </span>
             </div>
           </div>
@@ -203,6 +203,7 @@ export default {
     },
     selectGameType(type) {
       this.gameType = type;
+      if (this.gameConfigList.length === 1) this.selectGameConfig(this.gameConfigList[0][0]);
     },
     selectGameConfig(type) {
       this.gameConfig = type;

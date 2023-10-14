@@ -10,7 +10,7 @@ import { Metacom } from '../lib/metacom.js';
 import { mergeDeep } from '../lib/utils.js';
 
 // взять config.server.balancer не могу, потому что там неимпортируемый формат
-import { port as frontPort } from './../../application/config/front.json';
+import serverFrontConfig from './../../application/config/front.json';
 
 library.add(fas, far, fab);
 Vue.component('font-awesome-icon', FontAwesomeIcon);
@@ -22,12 +22,12 @@ const init = async () => {
 
   const protocol = location.protocol === 'http:' ? 'ws' : 'wss';
   // направление на конкретный port нужно для reconnect (см. initSession) + для отладки
-  const port = new URLSearchParams(location.search).get('port') || frontPort;
+  const port = new URLSearchParams(location.search).get('port') || serverFrontConfig.port;
 
   const serverHost =
     process.env.NODE_ENV === 'development' || new URLSearchParams(document.location.search).get('dev')
       ? `${location.hostname}:${port}`
-      : `${location.hostname+location.pathname}/api`;
+      : `${location.hostname + location.pathname}/api`;
 
   const metacom = Metacom.create(`${protocol}://${serverHost}`);
   const { api } = metacom;

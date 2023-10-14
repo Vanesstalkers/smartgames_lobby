@@ -36,7 +36,7 @@
         ...helperLinks,
       };
 
-      this.set({ currentTutorial, helper, helperLinks });
+      this.set({ currentTutorial, helper, helperLinks }, { removeEmptyObject: true });
       await this.saveChanges();
     }
     async leaveLobby({ sessionId, lobbyId }) {
