@@ -69,6 +69,11 @@ const init = async () => {
     const event = state.emit[eventName];
     if (!event) return console.error(`event "${eventName}" not found`);
     event(data);
+    const $iframe = document.querySelector('#gameIframe');
+    if ($iframe) {
+      // game active
+      $iframe.contentWindow.postMessage({ emit: { name: eventName, data } }, '*');
+    }
   });
 
   window.addEventListener('message', async function (e) {

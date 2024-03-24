@@ -243,6 +243,16 @@ export default {
           this.showGameIframe({ deckType });
         });
 
+      window.iframeEvents.push({
+        data: {
+          emit: { name: 'updateStore', data: { lobby: this.store.lobby } },
+        },
+        event: (postMessageData) => {
+          const $iframe = document.querySelector('#gameIframe');
+          $iframe.contentWindow.postMessage(postMessageData, '*');
+        },
+      });
+
       const game = this.lobby.gameServers[deckType];
       this.iframeScr = `${game.url}?${Object.entries({
         // iframeCode: deckType,
