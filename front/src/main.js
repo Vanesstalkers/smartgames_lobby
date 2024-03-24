@@ -29,11 +29,10 @@ const init = async () => {
       ? `${location.hostname}:${port}`
       : `${location.hostname + location.pathname}/api`;
 
-  const metacom = Metacom.create(`${protocol}://${serverHost}`);
+  window.Metacom = Metacom;
+  const metacom = window.Metacom.create(`${protocol}://${serverHost}`);
   const { api } = metacom;
-  window.metacom = metacom;
   window.api = api;
-
   await metacom.load('action');
 
   if (window !== window.parent) {

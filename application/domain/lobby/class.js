@@ -217,7 +217,7 @@
 
       if (user.personalChatMap) {
         await lib.store.broadcaster.publishAction(`user-${userId}`, 'broadcastToSessions', {
-          type: 'db/smartUpdated',
+          type: 'updateStore',
           data: { user: { [userId]: { personalChatMap: user.personalChatMap } } },
         });
         this.set({ users: { [userId]: { personalChatMap: null } } });

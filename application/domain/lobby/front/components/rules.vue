@@ -23,7 +23,7 @@
               <span v-on:click="showGallery('auto', 'car')">Карты авто</span><br />
               <span v-on:click="showGallery('auto', 'service')">Карты сервисов</span><br />
               <span v-on:click="showGallery('auto', 'client')">Карты клиентов</span><br />
-              <span v-on:click="showGallery('auto', 'spec')">Карты особенностей</span><br />
+              <span v-on:click="showGallery('auto', 'feature')">Карты особенностей</span><br />
             </li>
             <li>
               <label v-on:click.stop="showRules('auto-sales')">Игра "Авто-продажи"</label>
@@ -47,7 +47,7 @@
               <span v-on:click="showGallery('bank', 'service')">Карты сервисов</span><br />
               <span v-on:click="showGallery('bank', 'scoring')">Карты скоринга</span><br />
               <span v-on:click="showGallery('bank', 'client')">Карты клиентов</span><br />
-              <span v-on:click="showGallery('bank', 'spec')">Карты особенностей</span><br />
+              <span v-on:click="showGallery('bank', 'feature')">Карты особенностей</span><br />
             </li>
             <li>
               <label v-on:click.stop="showRules('bank-sales')">Игра "Банк-продаж"</label>
@@ -80,6 +80,12 @@ export default {
     state() {
       return this.$root.state || {};
     },
+    store() {
+      return this.state.store || {};
+    },
+    lobby() {
+      return this.store.lobby?.[this.state.currentLobby] || {};
+    },
   },
   methods: {
     showRules(name) {
@@ -91,82 +97,53 @@ export default {
         .catch(prettyAlert);
       return;
     },
-    showGallery(deck, type) {
+    async showGallery(deck, group) {
+      const { serverUrl } = this.lobby.gameServers[deck] || {};
+      console.log({ deck, group, serverUrl });
+      let serverOrigin;
       let images = [];
-      switch (deck) {
-        case 'release':
-          images = [
-            { name: 'audit' },
-            { name: 'claim' },
-            { name: 'coffee' },
-            { name: 'crutch' },
-            { name: 'crutch' },
-            { name: 'crutch' },
-            { name: 'disease' },
-            { name: 'dream' },
-            { name: 'emergency' },
-            { name: 'flowstate' },
-            { name: 'give_project' },
-            { name: 'insight' },
-            { name: 'lib' },
-            { name: 'pilot' },
-            { name: 'refactoring' },
-            { name: 'req_legal' },
-            { name: 'req_tax' },
-            { name: 'security' },
-            { name: 'showoff' },
-            { name: 'superman' },
-            { name: 'take_project' },
-            { name: 'teamlead' },
-            { name: 'transfer' },
-            { name: 'weekend' },
-            { name: 'water' },
-          ]
-            .map(({ name }) => `release/${name}.jpg`)
-            .filter((value, index, array) => {
-              return array.indexOf(value) === index;
-            });
-          break;
-        case 'auto':
-          switch (type) {
-            case 'car':
-              for (let i = 1; i <= 32; i++) images.push(`auto/car/car (${i}).png`);
-              break;
-            case 'service':
-              for (let i = 1; i <= 32; i++) images.push(`auto/service/service (${i}).png`);
-              break;
-            case 'client':
-              for (let i = 1; i <= 24; i++) images.push(`auto/client/client (${i}).png`);
-              break;
-            case 'spec':
-              for (let i = 1; i <= 24; i++) images.push(`auto/spec/spec (${i}).png`);
-              break;
-          }
-          break;
-        case 'bank':
-          switch (type) {
-            case 'product':
-              for (let i = 1; i <= 32; i++) images.push(`bank/product/product (${i}).png`);
-              break;
-            case 'service':
-              for (let i = 1; i <= 32; i++) images.push(`bank/service/service (${i}).png`);
-              break;
-            case 'client':
-              for (let i = 1; i <= 24; i++) images.push(`bank/client/client (${i}).png`);
-              break;
-            case 'spec':
-              for (let i = 1; i <= 24; i++) images.push(`bank/spec/spec (${i}).png`);
-              break;
-            case 'scoring':
-              for (let i = 1; i <= 38; i++) images.push(`bank/scoring/scoring (${i}).png`);
-              break;
-          }
-          break;
+      if (serverUrl) {
+        serverOrigin = serverUrl;
+
+        const method = 'POST';
+        const headers = { 'Content-Type': 'application/json' };
+        const body = JSON.stringify({ path: 'game.api.cards', args: [{ selectGroup: group }] });
+        images = await fetch(serverOrigin + '/api/action/public', { method, headers, body }).then((res) =>
+          res.text().then((packet) => {
+            const {
+              result: { cards },
+            } = JSON.parse(packet);
+            return cards;
+          })
+        );
+      } else {
+        serverOrigin = this.state.serverOrigin;
+        switch (deck) {
+          case 'bank':
+            switch (group) {
+              case 'product':
+                for (let i = 1; i <= 32; i++) images.push(`bank/product/product${i}.png`);
+                break;
+              case 'service':
+                for (let i = 1; i <= 32; i++) images.push(`bank/service/service${i}.png`);
+                break;
+              case 'client':
+                for (let i = 1; i <= 24; i++) images.push(`bank/client/client${i}.png`);
+                break;
+              case 'feature':
+                for (let i = 1; i <= 24; i++) images.push(`bank/feature/spec${i}.png`);
+                break;
+              case 'scoring':
+                for (let i = 1; i <= 8; i++) images.push(`bank/scoring/scoring${i}.png`);
+                break;
+            }
+            break;
+        }
       }
 
       new Fancybox(
         images.map((path) => ({
-          src: `url(${this.state.serverOrigin}/img/cards/${path}, url(empty-card.jpg)`,
+          src: `${serverOrigin}/img/cards/${path}`,
           type: 'image',
         }))
       );

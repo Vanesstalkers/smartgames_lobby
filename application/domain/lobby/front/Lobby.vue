@@ -26,39 +26,6 @@
     <helper v-if="!userData.gameId" :showProfile="showProfile" />
 
     <div class="menu-item-list">
-      <div
-        :class="[
-          'menu-item',
-          pinned.info ? 'pinned' : '',
-          'info',
-          !state.isMobile && pinned.info === null ? 'preview' : '',
-        ]"
-      >
-        <label v-on:click="pinMenuItem('info')">
-          УСЛУГИ СТУДИИ <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
-        </label>
-
-        <perfect-scrollbar class="menu-item-content">
-          <ul>
-            <li>
-              <label v-on:click.stop="showInfo('delivery')">Продажа настольных игр</label>
-              <div>В любом количестве с доставкой до офиса</div>
-            </li>
-            <li>
-              <label v-on:click.stop="showInfo('games')">Разработка игр на заказ</label>
-              <div>Настольные обучающие игры для любой сферы бизнеса</div>
-            </li>
-            <li>
-              <label v-on:click.stop="showInfo('it')">Создание онлайн-версий игр</label>
-              <div>Собственная команда программистов</div>
-            </li>
-            <li>
-              <label v-on:click.stop="showInfo('contacts')">Связаться с нами</label>
-              <div>Контактная информация</div>
-            </li>
-          </ul>
-        </perfect-scrollbar>
-      </div>
       <div :class="['menu-item', pinned.game ? 'pinned' : '', 'game']">
         <label v-on:click="pinMenuItem('game')">
           ИГРОВАЯ КОМНАТА <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
@@ -96,6 +63,43 @@
           ЗАЛ СЛАВЫ <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
         </label>
         <rankings class="menu-item-content" :games="lobby.rankings" />
+      </div>
+      <div
+        :class="[
+          'menu-item',
+          pinned.info ? 'pinned' : '',
+          'info',
+          !state.isMobile && pinned.info === null ? 'preview' : '',
+        ]"
+      >
+        <label v-on:click="pinMenuItem('info')">
+          УСЛУГИ СТУДИИ <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
+        </label>
+
+        <perfect-scrollbar class="menu-item-content">
+          <ul>
+            <li>
+              <label v-on:click.stop="showInfo('delivery')">Проведение тимбилдингов</label>
+              <div>С неограниченным количеством участников</div>
+            </li>
+            <li>
+              <label v-on:click.stop="showInfo('delivery')">Продажа настольных игр</label>
+              <div>В любом количестве с доставкой до офиса</div>
+            </li>
+            <li>
+              <label v-on:click.stop="showInfo('games')">Разработка игр на заказ</label>
+              <div>Настольные обучающие игры для любой сферы бизнеса</div>
+            </li>
+            <li>
+              <label v-on:click.stop="showInfo('it')">Создание онлайн-версий игр</label>
+              <div>Собственная команда программистов</div>
+            </li>
+            <li>
+              <label v-on:click.stop="showInfo('contacts')">Связаться с нами</label>
+              <div>Контактная информация</div>
+            </li>
+          </ul>
+        </perfect-scrollbar>
       </div>
     </div>
 
@@ -560,7 +564,7 @@ $textshadow: rgb(42, 22, 23);
 }
 .menu-item.info > div,
 .menu-item.info.preview:hover > div {
-  height: 380px;
+  height: 460px;
   width: 400px;
   border-color: crimson;
 }

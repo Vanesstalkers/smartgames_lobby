@@ -20,7 +20,7 @@
           :class="['select-btn', gameConfig ? 'active selected' : '']"
           @click="selectGameConfig(null)"
         >
-          {{ gameConfig ? gameConfigMap[gameConfig].title : 'Выбор режима:' }}
+          {{ gameConfigMap[gameConfig] ? gameConfigMap[gameConfig].title : 'Выбор режима:' }}
         </span>
       </div>
       <div v-if="!deckType" class="game-types">
@@ -308,6 +308,10 @@ export default {
         margin-right: 4px;
       }
     }
+  }
+  .game-block {
+    display: flex;
+    justify-content: space-around;
   }
   .game-config-block {
     @include flex();
