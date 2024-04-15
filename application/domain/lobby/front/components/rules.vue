@@ -7,7 +7,11 @@
           <div>Игра про ИТ-разработку</div>
           <ul>
             <li>
-              <label v-on:click.stop="showRules('release')">Правила игры</label>
+              <label>
+                <a :href="lobby.gameServers.release?.serverUrl + '/rules/deck.pdf'" target="_blank">
+                  Правила игры
+                </a>
+              </label>
               <hr />
               <span v-on:click="showGallery('release')">Список карт</span>
             </li>
@@ -18,7 +22,11 @@
           <div>Колода для игр про продажи автомобилей</div>
           <ul>
             <li>
-              <label v-on:click.stop="showRules('auto-deck')">Описание колоды</label>
+              <label>
+                <a :href="lobby.gameServers.auto?.serverUrl + '/rules/deck.pdf'" target="_blank">
+                  Описание колоды
+                </a>
+              </label>
               <hr />
               <span v-on:click="showGallery('auto', 'car')">Карты авто</span><br />
               <span v-on:click="showGallery('auto', 'service')">Карты сервисов</span><br />
@@ -26,13 +34,25 @@
               <span v-on:click="showGallery('auto', 'feature')">Карты особенностей</span><br />
             </li>
             <li>
-              <label v-on:click.stop="showRules('auto-sales')">Игра "Авто-продажи"</label>
+              <label>
+                <a :href="lobby.gameServers.auto?.serverUrl + '/rules/sales.pdf'" target="_blank">
+                  Игра "Авто-продажи"
+                </a>
+              </label>
             </li>
             <li>
-              <label v-on:click.stop="showRules('auto-auction')">Игра "Авто-аукцион"</label>
+              <label>
+                <a :href="lobby.gameServers.auto?.serverUrl + '/rules/auction.pdf'" target="_blank">
+                  Игра "Авто-аукцион"
+                </a>
+              </label>
             </li>
             <li>
-              <label v-on:click.stop="showRules('auto-express')">Игра "Авто-экспресс"</label>
+              <label>
+                <a :href="lobby.gameServers.auto?.serverUrl + '/rules/express.pdf'" target="_blank">
+                  Игра "Авто-экспресс"
+                </a>
+              </label>
             </li>
           </ul>
         </li>
@@ -41,7 +61,12 @@
           <div>Колода для игр про работу в банках</div>
           <ul>
             <li>
-              <label v-on:click.stop="showRules('bank-deck')">Описание колоды</label>
+              <label>
+                <a :href="state.serverOrigin + '/pdf/rules/bank-deck.pdf'" target="_blank">
+                  Правила игры
+                </a>
+              </label>
+              
               <hr />
               <span v-on:click="showGallery('bank', 'product')">Карты продуктов</span><br />
               <span v-on:click="showGallery('bank', 'service')">Карты сервисов</span><br />
@@ -50,10 +75,18 @@
               <span v-on:click="showGallery('bank', 'feature')">Карты особенностей</span><br />
             </li>
             <li>
-              <label v-on:click.stop="showRules('bank-sales')">Игра "Банк-продаж"</label>
+              <label>
+                <a :href="state.serverOrigin + '/pdf/rules/bank-sales.pdf'" target="_blank">
+                  Игра "Банк-продаж"
+                </a>
+              </label>
             </li>
             <li>
-              <label v-on:click.stop="showRules('bank-risks')">Игра "Банк-рисков"</label>
+              <label>
+                <a :href="state.serverOrigin + '/pdf/rules/bank-risks.pdf'" target="_blank">
+                  Игра "Банк-рисков"
+                </a>
+              </label>
             </li>
           </ul>
         </li>
@@ -88,18 +121,8 @@ export default {
     },
   },
   methods: {
-    showRules(name) {
-      api.action
-        .call({
-          path: 'helper.api.action',
-          args: [{ tutorial: 'lobby-tutorial-gameRules', step: name }],
-        })
-        .catch(prettyAlert);
-      return;
-    },
     async showGallery(deck, group) {
       const { serverUrl } = this.lobby.gameServers[deck] || {};
-      console.log({ deck, group, serverUrl });
       let serverOrigin;
       let images = [];
       if (serverUrl) {

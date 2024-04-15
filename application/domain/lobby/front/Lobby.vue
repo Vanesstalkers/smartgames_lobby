@@ -752,6 +752,7 @@ $textshadow: rgb(42, 22, 23);
   font-family: fantasy;
   font-size: 24px;
   color: #f4e205;
+  text-decoration: none;
 }
 .menu-item.list ul > li > span {
   cursor: pointer;
@@ -767,10 +768,6 @@ $textshadow: rgb(42, 22, 23);
 .menu-item.info ul > li > label > a,
 .menu-item.info ul > li::marker {
   color: crimson;
-}
-.menu-item.info ul > li > label > a,
-.menu-item.list ul > li > label > a {
-  font-size: 16px;
 }
 .menu-item.list ul > li:not(.disabled) > label:hover,
 .menu-item.list ul > li > span:hover,
