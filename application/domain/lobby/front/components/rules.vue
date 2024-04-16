@@ -32,6 +32,7 @@
               <span v-on:click="showGallery('auto', 'service')">Карты сервисов</span><br />
               <span v-on:click="showGallery('auto', 'client')">Карты клиентов</span><br />
               <span v-on:click="showGallery('auto', 'feature')">Карты особенностей</span><br />
+              <span v-on:click="showGallery('auto', 'credit')">Карты кредитов</span><br />
             </li>
             <li>
               <label>
