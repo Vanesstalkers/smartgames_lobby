@@ -79,7 +79,7 @@
         <perfect-scrollbar class="menu-item-content">
           <ul>
             <li>
-              <label v-on:click.stop="showInfo('delivery')">Проведение тимбилдингов</label>
+              <label v-on:click.stop="showInfo('teambuilding')">Проведение тимбилдингов</label>
               <div>С неограниченным количеством участников</div>
             </li>
             <li>

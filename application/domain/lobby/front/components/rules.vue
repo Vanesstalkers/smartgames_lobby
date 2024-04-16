@@ -154,10 +154,10 @@ export default {
                 for (let i = 1; i <= 24; i++) images.push(`bank/client/client${i}.png`);
                 break;
               case 'feature':
-                for (let i = 1; i <= 24; i++) images.push(`bank/feature/spec${i}.png`);
+                for (let i = 1; i <= 24; i++) images.push(`bank/spec/spec${i}.png`);
                 break;
               case 'scoring':
-                for (let i = 1; i <= 8; i++) images.push(`bank/scoring/scoring${i}.png`);
+                for (let i = 1; i <= 6; i++) images.push(`bank/scoring/scoring${i}.png`);
                 break;
             }
             break;
