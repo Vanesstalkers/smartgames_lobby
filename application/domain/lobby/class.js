@@ -389,11 +389,12 @@
       },
     } = this.gameServers;
 
-    if (playerCount > 1)
+    if (parseInt(playerCount) > 1) { // может прийти строка вида "XX-XX"
       await this.notifyWatchers({
         msg: `Нужны игроки в новую игру (${gameType})`,
         tgUsername: creator.tgUsername,
       });
+    }
   }
   async gameFinished({ gameId, gameType }) {
     await this.unsubscribe(`game-${gameId}`);

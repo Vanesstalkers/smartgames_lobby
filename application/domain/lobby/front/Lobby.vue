@@ -308,11 +308,10 @@ export default {
   },
   async created() {
     this.state.emit.joinGame = async (data) => {
-      const { deckType, gameId } = data;
-
+      const { deckType, gameType, gameId, needLoadGame } = data;
       window.iframeEvents.push({
         data: {
-          args: [{ deckType, gameId }],
+          args: [{ deckType, gameType, gameId, needLoadGame }],
         },
         event: ({ args }) => {
           const $iframe = document.querySelector('#gameIframe');

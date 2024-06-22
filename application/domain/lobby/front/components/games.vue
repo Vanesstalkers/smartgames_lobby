@@ -30,7 +30,7 @@
           :class="['select-btn', 'wait-for-select', game.active === false ? 'disabled' : '']"
           @click="selectDeckType(code)"
         >
-          <div><font-awesome-icon :icon="game.icon" /> {{ game.title }}</div>
+          <div class="title"><font-awesome-icon :icon="game.icon" /> {{ game.title }}</div>
         </div>
       </div>
 
@@ -39,6 +39,7 @@
           v-for="[code, game] in gameTypeList"
           :key="code"
           :class="['select-btn', 'wait-for-select', code, game.active === false ? 'disabled' : '']"
+          :style="game.style || {}"
           v-on:click="selectGameType(code)"
         >
           <font-awesome-icon :icon="game.icon" /> {{ game.title }}
@@ -50,6 +51,7 @@
           v-for="[code, config] in gameConfigList"
           :key="code"
           :class="['select-btn', 'wait-for-select', code]"
+          :style="config.style || {}"
           v-on:click="selectGameConfig(code)"
         >
           {{ config.title }}
@@ -57,12 +59,22 @@
       </div>
 
       <div v-if="gameConfig" class="game-start-block">
-        <span class="timer">
-          <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
-          {{ gameTimer }}
-          <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameTimer(-15)" />
-        </span>
-        <span class="timer-label">секунд<br />на ход</span>
+        <div v-if="playerCount.val">
+          <span class="controls">
+            <font-awesome-icon :icon="['fas', 'plus']" @click="updatePlayerCount(1)" />
+            {{ playerCount.val }}
+            <font-awesome-icon :icon="['fas', 'minus']" @click="updatePlayerCount(-1)" />
+          </span>
+          <span class="label">игроков</span>
+        </div>
+        <div>
+          <span class="controls">
+            <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
+            {{ gameTimer }}
+            <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameTimer(-15)" />
+          </span>
+          <span class="label">секунд на ход</span>
+        </div>
         <button class="select-btn active" @click="addGame()">Начать игру</button>
       </div>
     </div>
@@ -88,7 +100,7 @@
           </div>
           <span v-if="game.joinedPlayers && !game.waitForPlayer" :style="{ color: '#f4e205' }">
             <button
-              class="lobby-btn join-btn"
+              class="lobby-btn join-btn viewer"
               v-on:click="joinGame({ gameId: game.id, deckType: game.deckType, viewerMode: true })"
             >
               <font-awesome-icon :icon="['fas', 'eye']" />
@@ -127,6 +139,7 @@ export default {
       gameType: null,
       gameConfig: null,
       gameTimer: 60,
+      playerCount: { min: null, max: null, val: null },
     };
   },
   watch: {},
@@ -160,15 +173,13 @@ export default {
       return this.deckMap[this.deckType]?.games || {};
     },
     gameTypeList() {
-      const list = Object.entries(this.gameTypeMap);
-      return list.sort((a, b) => (a[1].playerCount[0] > b[1].playerCount[0] ? 1 : -1));
+      return Object.entries(this.gameTypeMap);
     },
     gameConfigMap() {
       return this.gameTypeMap[this.gameType]?.items || {};
     },
     gameConfigList() {
-      const list = Object.entries(this.gameConfigMap);
-      return list.sort((a, b) => (a[1].timer > b[1].timer ? -1 : 1));
+      return Object.entries(this.gameConfigMap);
     },
     lobbyGameList() {
       const list = Object.entries(this.lobby.games || {})
@@ -191,11 +202,17 @@ export default {
       if (this.gameConfigsLoaded) return;
       const configs = userData.lobbyGameConfigs;
       if (!configs) return;
-      const { deckType, gameType, gameConfig, gameTimer } = configs.active;
+      const { deckType, gameType, gameConfig, gameTimer, playerCount } = configs.active;
       this.$set(this, 'deckType', deckType);
       this.$set(this, 'gameType', gameType);
       this.$set(this, 'gameConfig', gameConfig);
       if (gameTimer) this.$set(this, 'gameTimer', gameTimer);
+      if (playerCount) {
+        const { min, max, val } = playerCount;
+        this.$set(this.playerCount, 'min', min);
+        this.$set(this.playerCount, 'max', max);
+        this.$set(this.playerCount, 'val', val);
+      }
       this.gameConfigsLoaded = true;
     },
     selectDeckType(type) {
@@ -207,20 +224,33 @@ export default {
     },
     selectGameConfig(type) {
       this.gameConfig = type;
+      const playerCount = this.gameConfigMap[type]?.playerCount;
+      this.$set(this, 'playerCount', { min: null, max: null, val: null });
+      if (playerCount && playerCount.toString().includes('-')) {
+        const [min, max] = playerCount
+          .toString()
+          .split('-')
+          .map((num) => parseInt(num));
+        this.$set(this, 'playerCount', { min, max, val: max });
+      }
     },
     updateGameTimer(timeShift) {
       this.gameTimer += timeShift;
       if (this.gameTimer > 120) this.gameTimer = 120;
       if (this.gameTimer < 15) this.gameTimer = 15;
     },
+    updatePlayerCount(countShift) {
+      this.playerCount.val += countShift;
+      if (this.playerCount.val > this.playerCount.max) this.playerCount.val = this.playerCount.max;
+      if (this.playerCount.val < this.playerCount.min) this.playerCount.val = this.playerCount.min;
+    },
     async addGame() {
-      const { deckType, gameType, gameConfig, gameTimer } = this;
+      const { deckType, gameType, gameConfig, gameTimer, playerCount } = this;
       if (!deckType || !gameType || !gameConfig) prettyAlert({ message: 'game config not set' });
-
       await api.action
         .call({
           path: 'user.api.update',
-          args: [{ lobbyGameConfigs: { active: { deckType, gameType, gameConfig, gameTimer } } }],
+          args: [{ lobbyGameConfigs: { active: { deckType, gameType, gameConfig, gameTimer, playerCount } } }],
         })
         .catch(prettyAlert);
 
@@ -230,12 +260,7 @@ export default {
 
       window.iframeEvents.push({
         data: {
-          args: [
-            {
-              ...{ deckType, gameType, gameConfig, gameTimer },
-              creator: { userId, userName, tgUsername },
-            },
-          ],
+          args: [{ deckType, gameType, gameConfig, gameTimer, playerCount }],
         },
         event: ({ args }) => {
           const $iframe = document.querySelector('#gameIframe');
@@ -303,9 +328,16 @@ export default {
     .select-btn {
       text-align: center;
       text-transform: uppercase;
+
       svg {
         width: 10px;
         margin-right: 4px;
+      }
+
+      .title {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
       }
     }
   }
@@ -322,8 +354,10 @@ export default {
     }
   }
   .game-start-block {
-    @include flex();
+    @include flex($wrap: wrap);
+    max-width: 80%;
     padding: 0px 10px;
+    margin: auto;
 
     .select-btn {
       text-align: center;
@@ -333,7 +367,7 @@ export default {
       // color: white!important;
     }
 
-    .timer {
+    .controls {
       color: #f4e205;
       font-size: 16px;
 
@@ -353,8 +387,8 @@ export default {
         }
       }
     }
-    .timer-label {
-      margin: 0px 10px;
+    .label {
+      margin: 0px 10px 0px 4px;
     }
   }
 
@@ -439,6 +473,14 @@ export default {
   .join-btn {
     font-size: 9px;
     padding: 4px;
+  }
+}
+
+.join-btn.viewer {
+  background: transparent;
+  color: #f4e205;
+  > svg {
+    color: #f4e205;
   }
 }
 </style>

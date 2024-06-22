@@ -19,47 +19,20 @@ async (context, { lobbyId }) => {
 
   const { gameId, playerId, viewerId } = user;
   if (gameId) {
-    let gameLoaded = await db.redis.hget('games', gameId);
+    let gameLoaded = await db.redis.hget('games', gameId, { json: true });
+    if (!gameLoaded) return { status: 'ok' };
+
+    const { deckType, gameType } = gameLoaded;
     const isAlive = await lib.store.broadcaster.publishAction(`game-${gameId}`, 'isAlive');
-    if(!isAlive){
-      gameLoaded = false;
-      await db.redis.hdel('games', gameId);
-    }
-
-    if (gameLoaded) {
-      const { deckType } = JSON.parse(gameLoaded);
-
+    if (isAlive) {
       session.set({ gameId, playerId, viewerId, lobbyId });
       await session.saveChanges();
 
-      session.emit('joinGame', { deckType, gameId, restore: true });
+      session.emit('joinGame', { deckType, gameType, gameId, restore: true });
     } else {
-      if (!gameLoaded) {
-        user.set({ gameId: null, playerId: null });
-        await user.saveChanges();
-
-        session.set({ lobbyId });
-        for (const session of user.sessions()) {
-          session.set({ gameId: null, playerId: null });
-          await session.saveChanges();
-        }
-        return { status: 'ok' };
-
-        // данная реализация восстанавливает игру с ошибкой
-        // + не продуман сценарий восстановления игры для нескольких игроков
-        await new domain.game.class()
-          .load({ fromDB: { id: gameId } })
-          .then(async (game) => {
-            await lib.store.broadcaster.publishAction(lobbyName, 'addGame', { id: gameId });
-            user.joinGame({ gameId, playerId });
-            lib.timers.timerRestart(game);
-          })
-          .catch(async (err) => {
-            if (err === 'not_found') {
-              user.set({ gameId: null, playerId: null });
-              await user.saveChanges();
-            } else throw err;
-          });
+      // игра восстановится из БД
+      for (const session of user.sessions()) {
+        session.emit('joinGame', { deckType, gameType, gameId, restore: true, needLoadGame: true });
       }
     }
   } else {

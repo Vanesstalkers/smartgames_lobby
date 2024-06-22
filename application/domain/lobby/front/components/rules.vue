@@ -1,7 +1,7 @@
 <template>
   <perfect-scrollbar>
     <div>
-      <ul>
+      <ul v-if="lobby.gameServers">
         <li class="disabled">
           <label class="not-disabled">Игра "Релиз"</label>
           <div>Игра про ИТ-разработку</div>
