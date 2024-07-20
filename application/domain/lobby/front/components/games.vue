@@ -59,13 +59,23 @@
       </div>
 
       <div v-if="gameConfig" class="game-start-block">
-        <div v-if="playerCount.val">
-          <span class="controls">
-            <font-awesome-icon :icon="['fas', 'plus']" @click="updatePlayerCount(1)" />
-            {{ playerCount.val }}
-            <font-awesome-icon :icon="['fas', 'minus']" @click="updatePlayerCount(-1)" />
-          </span>
-          <span class="label">игроков</span>
+        <div v-if="playerCount.val" style="width: 100%; display: flex; justify-content: center">
+          <div>
+            <span class="controls">
+              <font-awesome-icon :icon="['fas', 'plus']" @click="updatePlayerCount(1)" />
+              {{ playerCount.val }}
+              <font-awesome-icon :icon="['fas', 'minus']" @click="updatePlayerCount(-1)" />
+            </span>
+            <span class="label">всего игроков</span>
+          </div>
+          <div>
+            <span class="controls">
+              <font-awesome-icon :icon="['fas', 'plus']" @click="updateMaxPlayersInGame(1)" />
+              {{ maxPlayersInGame.val }}
+              <font-awesome-icon :icon="['fas', 'minus']" @click="updateMaxPlayersInGame(-1)" />
+            </span>
+            <span class="label">в команде</span>
+          </div>
         </div>
         <div>
           <span class="controls">
@@ -79,8 +89,8 @@
       </div>
     </div>
     <hr :style="{ margin: '10px 30px', borderColor: '#f4e205' }" />
-    <div>
-      <perfect-scrollbar>
+    <div :style="{ height: 'calc(100% - 100px)' }">
+      <perfect-scrollbar :style="{ height: '100%' }">
         <div v-for="game in lobbyGameList" :key="game._id" class="game-item">
           <div v-if="game.joinedPlayers">
             <div>
@@ -140,6 +150,7 @@ export default {
       gameConfig: null,
       gameTimer: 60,
       playerCount: { min: null, max: null, val: null },
+      maxPlayersInGame: { min: null, max: null, val: null },
     };
   },
   watch: {},
@@ -202,7 +213,7 @@ export default {
       if (this.gameConfigsLoaded) return;
       const configs = userData.lobbyGameConfigs;
       if (!configs) return;
-      const { deckType, gameType, gameConfig, gameTimer, playerCount } = configs.active;
+      const { deckType, gameType, gameConfig, gameTimer, playerCount, maxPlayersInGame } = configs.active;
       this.$set(this, 'deckType', deckType);
       this.$set(this, 'gameType', gameType);
       this.$set(this, 'gameConfig', gameConfig);
@@ -212,6 +223,12 @@ export default {
         this.$set(this.playerCount, 'min', min);
         this.$set(this.playerCount, 'max', max);
         this.$set(this.playerCount, 'val', val);
+      }
+      if (maxPlayersInGame) {
+        const { min, max, val } = maxPlayersInGame;
+        this.$set(this.maxPlayersInGame, 'min', min);
+        this.$set(this.maxPlayersInGame, 'max', max);
+        this.$set(this.maxPlayersInGame, 'val', val);
       }
       this.gameConfigsLoaded = true;
     },
@@ -224,7 +241,7 @@ export default {
     },
     selectGameConfig(type) {
       this.gameConfig = type;
-      const playerCount = this.gameConfigMap[type]?.playerCount;
+      const { playerCount, maxPlayersInGame } = this.gameConfigMap[type] || {};
       this.$set(this, 'playerCount', { min: null, max: null, val: null });
       if (playerCount && playerCount.toString().includes('-')) {
         const [min, max] = playerCount
@@ -232,6 +249,14 @@ export default {
           .split('-')
           .map((num) => parseInt(num));
         this.$set(this, 'playerCount', { min, max, val: max });
+      }
+      this.$set(this, 'maxPlayersInGame', { min: null, max: null, val: null });
+      if (maxPlayersInGame && maxPlayersInGame.toString().includes('-')) {
+        const [min, max] = maxPlayersInGame
+          .toString()
+          .split('-')
+          .map((num) => parseInt(num));
+        this.$set(this, 'maxPlayersInGame', { min, max, val: max });
       }
     },
     updateGameTimer(timeShift) {
@@ -244,23 +269,35 @@ export default {
       if (this.playerCount.val > this.playerCount.max) this.playerCount.val = this.playerCount.max;
       if (this.playerCount.val < this.playerCount.min) this.playerCount.val = this.playerCount.min;
     },
+    updateMaxPlayersInGame(countShift) {
+      this.maxPlayersInGame.val += countShift;
+      if (this.maxPlayersInGame.val > this.maxPlayersInGame.max) this.maxPlayersInGame.val = this.maxPlayersInGame.max;
+      if (this.maxPlayersInGame.val < this.maxPlayersInGame.min) this.maxPlayersInGame.val = this.maxPlayersInGame.min;
+    },
     async addGame() {
-      const { deckType, gameType, gameConfig, gameTimer, playerCount } = this;
+      const { deckType, gameType, gameConfig, gameTimer, playerCount, maxPlayersInGame } = this;
+
       if (!deckType || !gameType || !gameConfig) prettyAlert({ message: 'game config not set' });
+
       await api.action
         .call({
           path: 'user.api.update',
-          args: [{ lobbyGameConfigs: { active: { deckType, gameType, gameConfig, gameTimer, playerCount } } }],
+          args: [
+            {
+              lobbyGameConfigs: {
+                active: { deckType, gameType, gameConfig, gameTimer, playerCount, maxPlayersInGame },
+              },
+            },
+          ],
         })
         .catch(prettyAlert);
 
-      const userId = this.state.currentUser;
       let { name: userName, login, gender, tgUsername } = this.userData;
       if (!userName) userName = login;
 
       window.iframeEvents.push({
         data: {
-          args: [{ deckType, gameType, gameConfig, gameTimer, playerCount }],
+          args: [{ deckType, gameType, gameConfig, gameTimer, playerCount, maxPlayersInGame }],
         },
         event: ({ args }) => {
           const $iframe = document.querySelector('#gameIframe');
