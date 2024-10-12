@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="['games', bigConfig ? 'big-config' : '']">
     <div class="new-game-controls">
       <div class="breadcrumbs">
         <span
@@ -59,7 +59,7 @@
       </div>
 
       <div v-if="gameConfig" class="game-start-block">
-        <div v-if="playerCount.val" style="width: 100%; display: flex; justify-content: center">
+        <div v-if="playerCount.val" class="player-count-config">
           <div>
             <span class="controls">
               <font-awesome-icon :icon="['fas', 'plus']" @click="updatePlayerCount(1)" />
@@ -88,9 +88,9 @@
         <button class="select-btn active" @click="addGame()">Начать игру</button>
       </div>
     </div>
-    <hr :style="{ margin: '10px 30px', borderColor: '#f4e205' }" />
-    <div :style="{ height: 'calc(100% - 100px)' }">
-      <perfect-scrollbar :style="{ height: '100%' }">
+    <hr />
+    <div class="game-list-container">
+      <perfect-scrollbar class="game-list">
         <div v-for="game in lobbyGameList" :key="game._id" class="game-item">
           <div v-if="game.joinedPlayers">
             <div>
@@ -207,6 +207,9 @@ export default {
       const sortedList = list.sort((a, b) => (a.waitForPlayer && !b.waitForPlayer ? -1 : 1));
       return sortedList;
     },
+    bigConfig() {
+      return this.playerCount.val > 0 ? true : false;
+    },
   },
   methods: {
     prepareGameConfigs(userData = {}) {
@@ -214,6 +217,7 @@ export default {
       const configs = userData.lobbyGameConfigs;
       if (!configs) return;
       const { deckType, gameType, gameConfig, gameTimer, playerCount, maxPlayersInGame } = configs.active;
+      console.log(configs)
       this.$set(this, 'deckType', deckType);
       this.$set(this, 'gameType', gameType);
       this.$set(this, 'gameConfig', gameConfig);
@@ -241,6 +245,7 @@ export default {
     },
     selectGameConfig(type) {
       this.gameConfig = type;
+      console.log( this.gameConfigMap[type])
       const { playerCount, maxPlayersInGame } = this.gameConfigMap[type] || {};
       this.$set(this, 'playerCount', { min: null, max: null, val: null });
       if (playerCount && playerCount.toString().includes('-')) {
@@ -332,154 +337,182 @@ export default {
 <style lang="scss" scoped>
 @import '@/mixins.scss';
 
-.new-game-controls {
-  @media only screen and (max-width: 360px) {
-    font-size: 9px;
-  }
+.games {
+  overflow: hidden !important;
 
-  .breadcrumbs {
-    text-align: center;
-    padding: 10px 4px;
-
-    .select-btn:not(.active) {
-      border: none;
-      cursor: default !important;
-      &:hover {
-        opacity: 1 !important;
-      }
+  .new-game-controls {
+    @media only screen and (max-width: 360px) {
+      font-size: 9px;
     }
-    .select-btn.active {
-      &:hover {
-        opacity: 0.7;
-      }
-    }
-  }
 
-  .release-game {
-    @include flex($wrap: wrap);
-  }
-  .game-types {
-    @include flex();
-    padding: 0px 10px;
-
-    .select-btn {
+    .breadcrumbs {
       text-align: center;
-      text-transform: uppercase;
+      padding: 10px 4px;
 
-      svg {
-        width: 10px;
-        margin-right: 4px;
+      .select-btn:not(.active) {
+        border: none;
+        cursor: default !important;
+        &:hover {
+          opacity: 1 !important;
+        }
       }
-
-      .title {
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
-      }
-    }
-  }
-  .game-block {
-    display: flex;
-    justify-content: space-around;
-  }
-  .game-config-block {
-    @include flex();
-    padding: 0px 10px;
-
-    .select-btn {
-      text-align: center;
-    }
-  }
-  .game-start-block {
-    @include flex($wrap: wrap);
-    max-width: 80%;
-    padding: 0px 10px;
-    margin: auto;
-
-    .select-btn {
-      text-align: center;
-      max-width: 100px;
-      // background-color: #1976d2!important;
-      // border-color: #1976d2!important;
-      // color: white!important;
-    }
-
-    .controls {
-      color: #f4e205;
-      font-size: 16px;
-
-      svg {
-        cursor: pointer;
-        border: 1px solid;
-        border-radius: 50%;
-        padding: 0px 2px;
-        color: black;
-        background: #f4e205;
-      }
-
-      &.tutorial-active {
-        box-shadow: none;
-        > svg {
-          box-shadow: 0 0 10px 10px #f4e205;
+      .select-btn.active {
+        &:hover {
+          opacity: 0.7;
         }
       }
     }
-    .label {
-      margin: 0px 10px 0px 4px;
+
+    .release-game {
+      @include flex($wrap: wrap);
+    }
+    .game-types {
+      @include flex();
+      padding: 0px 10px;
+
+      .select-btn {
+        text-align: center;
+        text-transform: uppercase;
+
+        svg {
+          width: 10px;
+          margin-right: 4px;
+        }
+
+        .title {
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          overflow: hidden;
+        }
+      }
+    }
+    .game-block {
+      display: flex;
+      justify-content: space-around;
+    }
+    .game-config-block {
+      @include flex();
+      padding: 0px 10px;
+
+      .select-btn {
+        text-align: center;
+      }
+    }
+    .game-start-block {
+      @include flex($wrap: wrap);
+      max-width: 80%;
+      padding: 0px 10px;
+      margin: auto;
+
+      .select-btn {
+        text-align: center;
+        max-width: 100px;
+        // background-color: #1976d2!important;
+        // border-color: #1976d2!important;
+        // color: white!important;
+      }
+
+      .controls {
+        color: #f4e205;
+        font-size: 16px;
+
+        svg {
+          cursor: pointer;
+          border: 1px solid;
+          border-radius: 50%;
+          padding: 0px 2px;
+          color: black;
+          background: #f4e205;
+        }
+
+        &.tutorial-active {
+          box-shadow: none;
+          > svg {
+            box-shadow: 0 0 10px 10px #f4e205;
+          }
+        }
+      }
+      .label {
+        margin: 0px 10px 0px 4px;
+      }
+
+      .player-count-config {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+      }
+    }
+
+    .select-btn {
+      width: 40%;
+      text-align: left;
+      border: 2px solid #f4e205;
+      color: white;
+      background-color: transparent;
+      padding: 4px 10px;
+      margin: 4px;
+      border-radius: 4px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      cursor: pointer;
+
+      @media only screen and (max-width: 360px) {
+        padding: 4px 4px;
+      }
+
+      svg {
+        width: 40px;
+        @media only screen and (max-width: 360px) {
+          width: 30px;
+        }
+      }
+      &.active {
+        background: #f4e205;
+        color: black;
+        svg {
+          color: black !important;
+        }
+      }
+      &.selected {
+        &:after {
+          content: 'X';
+          color: black;
+          padding: 0px 2px;
+          font-weight: bold;
+        }
+      }
+      &.disabled {
+        border: 2px solid #ccc;
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+
+      &.wait-for-select:not(.disabled):hover {
+        opacity: 0.7;
+      }
+
+      &.tutorial-active {
+        box-shadow: 0px 0px 20px 5px #f4e205;
+      }
     }
   }
 
-  .select-btn {
-    width: 40%;
-    text-align: left;
-    border: 2px solid #f4e205;
-    color: white;
-    background-color: transparent;
-    padding: 4px 10px;
-    margin: 4px;
-    border-radius: 4px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    cursor: pointer;
+  hr {
+    margin: 10px 30px;
+    border-color: #f4e205;
+  }
+  .game-list-container {
+    height: calc(100% - 100px);
 
-    @media only screen and (max-width: 360px) {
-      padding: 4px 4px;
+    .game-list {
+      height: 100%;
     }
+  }
 
-    svg {
-      width: 40px;
-      @media only screen and (max-width: 360px) {
-        width: 30px;
-      }
-    }
-    &.active {
-      background: #f4e205;
-      color: black;
-      svg {
-        color: black !important;
-      }
-    }
-    &.selected {
-      &:after {
-        content: 'X';
-        color: black;
-        padding: 0px 2px;
-        font-weight: bold;
-      }
-    }
-    &.disabled {
-      border: 2px solid #ccc;
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-
-    &.wait-for-select:not(.disabled):hover {
-      opacity: 0.7;
-    }
-
-    &.tutorial-active {
-      box-shadow: 0px 0px 20px 5px #f4e205;
+  &.big-config {
+    .game-list-container {
+      height: calc(100% - 120px);
     }
   }
 }

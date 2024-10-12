@@ -15,6 +15,8 @@ async () => {
         await db.redis.set('lobbyData', { channelName: lobby.channelName() }, { json: true });
       });
 
+      return;
+
       try {
         const { Midjourney } = npm.midjourney;
         const client = new Midjourney(config.midjourney);

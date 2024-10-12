@@ -31,8 +31,10 @@ async (context, { lobbyId }) => {
       session.emit('joinGame', { deckType, gameType, gameId, restore: true });
     } else {
       // игра восстановится из БД
-      for (const session of user.sessions()) {
+      const sessions = user.sessions();
+      for (const session of sessions) {
         session.emit('joinGame', { deckType, gameType, gameId, restore: true, needLoadGame: true });
+        break; // для восстановления игры достаточно одного вызова
       }
     }
   } else {
