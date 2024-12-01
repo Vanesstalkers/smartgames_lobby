@@ -66,7 +66,7 @@
               {{ playerCount.val }}
               <font-awesome-icon :icon="['fas', 'minus']" @click="updatePlayerCount(-1)" />
             </span>
-            <span class="label">всего игроков</span>
+            <span class="label"> всего игроков</span>
           </div>
           <div>
             <span class="controls">
@@ -74,7 +74,7 @@
               {{ maxPlayersInGame.val }}
               <font-awesome-icon :icon="['fas', 'minus']" @click="updateMaxPlayersInGame(-1)" />
             </span>
-            <span class="label">в команде</span>
+            <span class="label"> в команде</span>
           </div>
         </div>
         <div>
@@ -83,7 +83,7 @@
             {{ gameTimer }}
             <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameTimer(-15)" />
           </span>
-          <span class="label">секунд на ход</span>
+          <span class="label"> секунд на ход</span>
         </div>
         <button class="select-btn active" @click="addGame()">Начать игру</button>
       </div>
@@ -358,7 +358,11 @@ export default {
       }
       .select-btn.active {
         &:hover {
-          opacity: 0.7;
+          background: transparent;
+          color: white;
+          &::after {
+            color: white;
+          }
         }
       }
     }
@@ -407,9 +411,10 @@ export default {
       .select-btn {
         text-align: center;
         max-width: 100px;
-        // background-color: #1976d2!important;
-        // border-color: #1976d2!important;
-        // color: white!important;
+        &:hover {
+          background: transparent;
+          color: white;
+        }
       }
 
       .controls {
@@ -418,11 +423,20 @@ export default {
 
         svg {
           cursor: pointer;
-          border: 1px solid;
           border-radius: 50%;
           padding: 0px 2px;
           color: black;
           background: #f4e205;
+          border: 2px solid #f4e205;
+          font-size: 10px;
+
+          &:hover {
+            background: transparent;
+            color: #f4e205;
+            font-size: 8px;
+            padding: 1px 2.8px;
+            // border-width: 3px;
+          }
         }
 
         &.tutorial-active {
@@ -457,6 +471,11 @@ export default {
       overflow: hidden;
       cursor: pointer;
 
+      &:hover {
+        background: transparent;
+        color: white;
+      }
+
       @media only screen and (max-width: 360px) {
         padding: 4px 4px;
       }
@@ -489,7 +508,9 @@ export default {
       }
 
       &.wait-for-select:not(.disabled):hover {
-        opacity: 0.7;
+        // opacity: 0.7;
+        background-color: #f4e205;
+        color: black;
       }
 
       &.tutorial-active {

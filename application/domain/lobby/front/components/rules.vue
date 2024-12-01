@@ -20,7 +20,7 @@
         <li class="disabled">
           <label>Автобизнес</label>
           <div>Колода для игр про продажи автомобилей</div>
-          <ul>
+          <ul v-if="lobby.gameServers.auto?.serverUrl">
             <li>
               <label>
                 <a :href="lobby.gameServers.auto?.serverUrl + '/rules/deck.pdf'" target="_blank">

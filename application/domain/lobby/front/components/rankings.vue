@@ -1,11 +1,14 @@
 <template>
   <perfect-scrollbar ref="scrollRankings">
     <div class="rankings">
-      <div v-if="!menuOpened" class="title" v-on:click="menuOpened = true">
-        <font-awesome-icon :icon="['fas', 'chart-simple']" size="xl" :style="{ paddingRight: '4px' }" />
-        <span>
-          {{ activeRatingTitle }}
-        </span>
+      <div v-if="!menuOpened" class="title">
+        <div v-on:click="menuOpened = true" class="close">Х</div>
+        <div>
+          <font-awesome-icon :icon="['fas', 'chart-simple']" size="xl" :style="{ paddingRight: '4px' }" />
+          <span>
+            {{ activeRatingTitle }}
+          </span>
+        </div>
       </div>
       <div v-if="menuOpened" class="menu">
         Выбор рейтинга:
@@ -158,16 +161,29 @@ export default {
       white-space: pre-wrap;
       text-align: center;
       padding: 8px 0px;
-      cursor: pointer;
 
-      &:hover {
-        opacity: 0.7;
-      }
-
-      > span {
+      span {
         &.tutorial-active {
           box-shadow: 0px 5px 20px 20px white;
         }
+      }
+
+      .close {
+        &:hover {
+          color: black;
+          background-color : #f4e205;
+        }
+        font-size: 8px;
+        font-weight: bolder;
+        background: transparent;
+        color: #f4e205;
+        border-radius: 50%;
+        outline: 2px solid #f4e205;
+        padding: 2px 4.5px;
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        cursor: pointer;
       }
     }
 
@@ -184,7 +200,7 @@ export default {
         color: #f4e205;
 
         &:hover {
-          opacity: 0.7;
+          color: white;
         }
       }
 
@@ -196,7 +212,7 @@ export default {
           cursor: pointer;
 
           &:hover {
-            opacity: 0.7;
+            color: #f4e205;
           }
         }
       }

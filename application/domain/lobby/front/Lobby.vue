@@ -45,17 +45,11 @@
         </label>
         <chat
           class="menu-item-content"
-          :channels="{
-            [`lobby-${state.currentLobby}`]: {
-              name: 'Общий чат',
-              users: this.lobby.users || {},
-              items: this.lobby.chat || {},
-            },
-          }"
           :defActiveChannel="`lobby-${state.currentLobby}`"
           :userData="userData"
           :isVisible="pinned.chat"
           :hasUnreadMessages="hasUnreadMessages"
+          :channels="chatChannels"
         />
       </div>
       <div :class="['menu-item', pinned.top ? 'pinned' : '', 'top']">
@@ -200,6 +194,15 @@ export default {
     lobby() {
       return this.store.lobby?.[this.state.currentLobby] || {};
     },
+    chatChannels() {
+      return {
+        [`lobby-${state.currentLobby}`]: {
+          name: 'Общий чат',
+          users: this.lobby.users || {},
+          items: this.lobby.chat || {},
+        },
+      };
+    },
   },
   methods: {
     async initSession(config = {}) {
@@ -227,10 +230,7 @@ export default {
     },
     async callLobbyEnter({ lobbyId }) {
       await api.action
-        .call({
-          path: 'lobby.api.enter',
-          args: [{ lobbyId }],
-        })
+        .call({ path: 'lobby.api.enter', args: [{ lobbyId }] })
         .then(() => {
           this.$set(this.$root.state, 'currentLobby', lobbyId);
           this.lobbyDataLoaded = true;
@@ -254,15 +254,20 @@ export default {
       });
 
       const game = this.lobby.gameServers[deckType];
-      this.iframeScr = `${game.url}?${Object.entries({
-        // iframeCode: deckType,
-        lobbyOrigin: state.serverOrigin,
-        userId: state.currentUser,
-        lobbyId: state.currentLobby,
-        token: state.currentToken,
-      })
-        .map((pair) => pair.map(encodeURIComponent).join('='))
-        .join('&')}`;
+
+      function encodeUri(state) {
+        return Object.entries({
+          // iframeCode: deckType,
+          lobbyOrigin: state.serverOrigin,
+          userId: state.currentUser,
+          lobbyId: state.currentLobby,
+          token: state.currentToken,
+        })
+          .map((pair) => pair.map(encodeURIComponent).join('='))
+          .join('&');
+      }
+
+      this.iframeScr = game.url + '?' + encodeUri(state);
     },
 
     show(mask) {
@@ -307,7 +312,7 @@ export default {
     },
   },
   async created() {
-    this.state.emit.joinGame = async (data) => {
+    this.state.emit.restoreGame = async (data) => {
       const { deckType, gameType, gameId, needLoadGame } = data;
       window.iframeEvents.push({
         data: {
@@ -543,39 +548,55 @@ $textshadow: rgb(42, 22, 23);
 }
 
 .menu-item.info {
-  top: 5%;
-  left: calc(50% + 350px);
-}
-.menu-item.info > label {
-  font-size: 24px;
-  letter-spacing: 6px;
-  color: black;
-  text-shadow:
-    white 0px 0px 0px,
-    white 0.669131px 0.743145px 0px,
-    white 1.33826px 1.48629px 0px,
-    white 2.00739px 2.22943px 0px,
-    white 2.67652px 2.97258px 0px,
-    white 3.34565px 3.71572px 0px,
-    white 4.01478px 4.45887px 0px,
-    white 4.68391px 5.20201px 0px;
-  background-image: linear-gradient(crimson, crimson);
-}
-.menu-item.info > label > svg {
-  color: crimson;
-  width: 18px;
-  height: 18px;
-  margin-top: 4px;
-}
-.menu-item.info.preview:not(.pinned) > div {
-  height: 180px;
-  overflow: hidden;
-}
-.menu-item.info > div,
-.menu-item.info.preview:hover > div {
-  height: 460px;
-  width: 400px;
-  border-color: crimson;
+  top: 100px;
+  left: calc(50% + 400px);
+
+  $info_textshadow: rgb(42, 22, 23);
+  > label {
+    font-size: 2.5em;
+    letter-spacing: 6px;
+    color: white;
+    background-image: linear-gradient(#1976d2, #1976d2);
+    text-shadow:
+      $info_textshadow 0px -2px 0px,
+      $info_textshadow -2px 0px 0px,
+      $info_textshadow 0px 0px 0px,
+      $info_textshadow 0.669131px 0.743145px 0px,
+      $info_textshadow 1.33826px 1.48629px 0px,
+      $info_textshadow 2.00739px 2.22943px 0px,
+      $info_textshadow 2.67652px 2.97258px 0px,
+      $info_textshadow 3.34565px 3.71572px 0px,
+      $info_textshadow 4.01478px 4.45887px 0px,
+      $info_textshadow 4.68391px 5.20201px 0px;
+
+    > svg {
+      color: #1976d2;
+      width: 18px;
+      height: 18px;
+      margin-top: 4px;
+      background-color: white;
+    }
+  }
+
+  &.pinned > label,
+  &:hover > label {
+    background-image: linear-gradient(#1976d2, #1976d2);
+    &:before {
+      display: none;
+    }
+  }
+
+  &.preview:not(.pinned) > div {
+    height: 180px;
+    overflow: hidden;
+  }
+
+  > div,
+  &.info.preview:hover > div {
+    height: 460px;
+    width: 400px;
+    border-color: #1976d2;
+  }
 }
 
 .menu-item.game {
@@ -768,9 +789,13 @@ $textshadow: rgb(42, 22, 23);
 .menu-item.info ul > li::marker {
   color: crimson;
 }
-.menu-item.list ul > li:not(.disabled) > label:hover,
+.menu-item.list ul > li:not(.disabled) label:hover,
+.menu-item.list ul > li:not(.disabled) label:hover > a,
 .menu-item.list ul > li > span:hover,
-.menu-item.list ul > li:not(.disabled):hover::marker {
+.menu-item.list ul > li:not(.disabled):hover::marker,
+.menu-item.info ul > li:not(.disabled) > label:hover,
+.menu-item.info ul > li > span:hover,
+.menu-item.info ul > li:not(.disabled):hover::marker {
   color: white;
 }
 
