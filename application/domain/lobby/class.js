@@ -51,6 +51,7 @@
             ],
           },
           // topFreelancers: { title: 'Фрилансеры', headers: [] },
+          // arevageCkeckSum: { title: 'Средний чек', headers: [] },
           bestQuality: {
             title: 'Лучшее качество',
             headers: [
@@ -65,6 +66,7 @@
               { code: 'games', title: 'Написано проектов' },
               { code: 'totalTime', title: 'Потрачено времени' },
               { code: 'avrTime', title: 'В среднем' },
+              // { code: 'totalTime', title: 'Доход в час' },
             ],
           },
         },

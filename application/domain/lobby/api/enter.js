@@ -23,19 +23,20 @@ async (context, { lobbyId }) => {
     if (!gameInfo) return { status: 'ok' };
 
     const { deckType, gameType } = gameInfo;
+    let needLoadGame = false;
     const isAlive = await lib.store.broadcaster.publishAction(`game-${gameId}`, 'isAlive');
     if (isAlive) {
       session.set({ gameId, playerId, viewerId, lobbyId });
       await session.saveChanges();
-      session.emit('restoreGame', { deckType, gameType, gameId });
     } else {
+      needLoadGame = true;
       // игра восстановится из БД
-      const sessions = user.sessions();
-      for (const session of sessions) {
-        session.emit('restoreGame', { deckType, gameType, gameId, needLoadGame: true });
-        break; // для восстановления игры достаточно одного вызова
-      }
+      // const sessions = user.sessions();
+      // for (const session of sessions) {
+        // break; // для восстановления игры достаточно одного вызова
+      // }
     }
+    session.emit('restoreGame', { deckType, gameType, gameId, needLoadGame });
   } else {
     session.set({ lobbyId });
     await session.saveChanges();

@@ -91,6 +91,8 @@
     <hr />
     <div class="game-list-container">
       <perfect-scrollbar class="game-list">
+        <div>моя незаконченная игра</div>
+        <hr />
         <div v-for="game in lobbyGameList" :key="game._id" class="game-item">
           <div v-if="game.joinedPlayers">
             <div>
@@ -204,7 +206,11 @@ export default {
           return game;
         })
         .reverse();
-      const sortedList = list.sort((a, b) => (a.waitForPlayer && !b.waitForPlayer ? -1 : 1));
+
+      const sortedList = [
+        ...list.filter(({ waitForPlayer }) => waitForPlayer),
+        ...list.filter(({ waitForPlayer }) => !waitForPlayer),
+      ];
       return sortedList;
     },
     bigConfig() {
@@ -214,13 +220,16 @@ export default {
   methods: {
     prepareGameConfigs(userData = {}) {
       if (this.gameConfigsLoaded) return;
+
       const configs = userData.lobbyGameConfigs;
       if (!configs) return;
+
       const { deckType, gameType, gameConfig, gameTimer, playerCount, maxPlayersInGame } = configs.active;
-      console.log(configs)
+
       this.$set(this, 'deckType', deckType);
       this.$set(this, 'gameType', gameType);
       this.$set(this, 'gameConfig', gameConfig);
+
       if (gameTimer) this.$set(this, 'gameTimer', gameTimer);
       if (playerCount) {
         const { min, max, val } = playerCount;
@@ -234,6 +243,7 @@ export default {
         this.$set(this.maxPlayersInGame, 'max', max);
         this.$set(this.maxPlayersInGame, 'val', val);
       }
+
       this.gameConfigsLoaded = true;
     },
     selectDeckType(type) {
@@ -245,8 +255,9 @@ export default {
     },
     selectGameConfig(type) {
       this.gameConfig = type;
-      console.log( this.gameConfigMap[type])
+
       const { playerCount, maxPlayersInGame } = this.gameConfigMap[type] || {};
+
       this.$set(this, 'playerCount', { min: null, max: null, val: null });
       if (playerCount && playerCount.toString().includes('-')) {
         const [min, max] = playerCount
@@ -255,6 +266,7 @@ export default {
           .map((num) => parseInt(num));
         this.$set(this, 'playerCount', { min, max, val: max });
       }
+
       this.$set(this, 'maxPlayersInGame', { min: null, max: null, val: null });
       if (maxPlayersInGame && maxPlayersInGame.toString().includes('-')) {
         const [min, max] = maxPlayersInGame

@@ -314,6 +314,7 @@ export default {
   async created() {
     this.state.emit.restoreGame = async (data) => {
       const { deckType, gameType, gameId, needLoadGame } = data;
+
       window.iframeEvents.push({
         data: {
           args: [{ deckType, gameType, gameId, needLoadGame }],
@@ -323,6 +324,7 @@ export default {
           $iframe.contentWindow.postMessage({ path: 'game.api.restore', args }, '*');
         },
       });
+
       this.showGameIframe({ deckType });
     };
 
@@ -332,6 +334,13 @@ export default {
         event(data);
       }
       window.iframeEvents = [];
+    };
+    this.state.emit.iframeDead = async () => {
+      const events = window.iframeEvents || [];
+      console.log('iframeDead', { events });
+      // for (const { event, data } of events) {
+      //   event(data);
+      // }
     };
     this.state.emit.hideGameIframe = () => {
       this.iframeScr = '';
@@ -575,6 +584,7 @@ $textshadow: rgb(42, 22, 23);
       height: 18px;
       margin-top: 4px;
       background-color: white;
+      // box-shadow: inset 0px 0px 0px 4px #1976d2;
     }
   }
 

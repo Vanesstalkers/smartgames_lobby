@@ -30,7 +30,7 @@ const init = async () => {
       : `${location.hostname + location.pathname}/api`;
 
   window.Metacom = Metacom;
-  const metacom = window.Metacom.create(`${protocol}://${serverHost}`);
+  const metacom = window.Metacom.create(`${protocol}://${serverHost}`, { callTimeout: 1000 * 1000 });
   const { api } = metacom;
   window.api = api;
   await metacom.load('action');
