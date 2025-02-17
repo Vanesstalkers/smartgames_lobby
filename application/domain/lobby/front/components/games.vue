@@ -40,7 +40,7 @@
           :key="code"
           :class="['select-btn', 'wait-for-select', code, game.active === false ? 'disabled' : '']"
           :style="game.style || {}"
-          v-on:click="selectGameType(code)"
+          @click="selectGameType(code)"
         >
           <font-awesome-icon :icon="game.icon" /> {{ game.title }}
         </div>
@@ -247,11 +247,15 @@ export default {
       this.gameConfigsLoaded = true;
     },
     selectDeckType(type) {
-      this.deckType = type;
+      if (type === null || this.deckMap[type]?.active !== false) {
+        this.deckType = type;
+      }
     },
     selectGameType(type) {
-      this.gameType = type;
-      if (this.gameConfigList.length === 1) this.selectGameConfig(this.gameConfigList[0][0]);
+      if (type === null || this.gameTypeMap[type]?.active !== false) {
+        this.gameType = type;
+        if (this.gameConfigList.length === 1) this.selectGameConfig(this.gameConfigList[0][0]);
+      }
     },
     selectGameConfig(type) {
       this.gameConfig = type;

@@ -52,8 +52,8 @@ const init = async () => {
       updateStore(data) {
         mergeDeep({ target: state.store, source: data });
       },
-      alert(data) {
-        prettyAlert(data);
+      alert(data, config) {
+        prettyAlert(data, config);
       },
       logout() {
         window.app.$set(window.app.$root.state, 'currentUser', '');
@@ -65,29 +65,40 @@ const init = async () => {
     },
   };
 
-  api.action.on('emit', ({ eventName, data }) => {
+  api.action.on('emit', ({ eventName, data, config }) => {
     const event = state.emit[eventName];
+
     if (!event) return console.error(`event "${eventName}" not found`);
-    event(data);
+
+    event(data, config);
+
     const $iframe = document.querySelector('#gameIframe');
     if ($iframe) {
       // game active
-      $iframe.contentWindow.postMessage({ emit: { name: eventName, data } }, '*');
+      $iframe.contentWindow.postMessage({ emit: { name: eventName, data, config } }, '*');
     }
   });
 
   window.addEventListener('message', async function (e) {
     const { path, args, routeTo, emit } = e.data;
-    if (path && args) return await api.action.call({ path, args });
-    if (routeTo)
+
+    if (path && args) {
+      return await api.action.call({ path, args });
+    }
+
+    if (routeTo) {
       return router.push({ path: routeTo }).catch((err) => {
         console.log(err);
       });
+    }
+
     if (emit) {
-      const { name: eventName, data } = emit;
+      const { name: eventName, data, config } = emit;
       const event = state.emit[eventName];
+
       if (!event) return console.error(`event "${eventName}" not found`);
-      return await event(data);
+
+      return await event(data, config);
     }
   });
 
