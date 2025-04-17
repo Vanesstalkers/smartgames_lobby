@@ -1,13 +1,9 @@
 <template>
-  <div
-    v-if="lobbyDataLoaded"
-    id="lobby"
-    :class="[
-      state.isMobile ? 'mobile-view' : '',
-      state.isLandscape ? 'landscape-view' : 'portrait-view',
-      !state.currentUser ? 'need-auth' : '',
-    ]"
-  >
+  <div v-if="lobbyDataLoaded" id="lobby" :class="[
+    state.isMobile ? 'mobile-view' : '',
+    state.isLandscape ? 'landscape-view' : 'portrait-view',
+    !state.currentUser ? 'need-auth' : '',
+  ]">
     <iframe v-if="iframeScr" :src="iframeScr" :id="`gameIframe`" allowfullscreen></iframe>
 
     <div v-if="!state.currentUser" class="auth">
@@ -23,7 +19,8 @@
         <button class="new" v-on:click="createDemoUser">Создать нового пользователя</button>
       </div>
     </div>
-    <helper v-if="!userData.gameId" :showProfile="showProfile" />
+
+    <helper v-if="!userData.gameId" :showProfile="showProfile" :defaultMenu="defaultTutorialMenu" />
 
     <div class="menu-item-list">
       <div :class="['menu-item', pinned.game ? 'pinned' : '', 'game']">
@@ -43,14 +40,8 @@
           ОБЩЕНИЕ <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
           <small v-if="unreadMessages > 0">есть новые сообщения</small>
         </label>
-        <chat
-          class="menu-item-content"
-          :defActiveChannel="`lobby-${state.currentLobby}`"
-          :userData="userData"
-          :isVisible="pinned.chat"
-          :hasUnreadMessages="hasUnreadMessages"
-          :channels="chatChannels"
-        />
+        <chat class="menu-item-content" :defActiveChannel="`lobby-${state.currentLobby}`" :userData="userData"
+          :isVisible="pinned.chat" :hasUnreadMessages="hasUnreadMessages" :channels="chatChannels" />
       </div>
       <div :class="['menu-item', pinned.top ? 'pinned' : '', 'top']">
         <label v-on:click="pinMenuItem('top')">
@@ -58,14 +49,12 @@
         </label>
         <rankings class="menu-item-content" :games="lobby.rankings" />
       </div>
-      <div
-        :class="[
-          'menu-item',
-          pinned.info ? 'pinned' : '',
-          'info',
-          !state.isMobile && pinned.info === null ? 'preview' : '',
-        ]"
-      >
+      <div :class="[
+        'menu-item',
+        pinned.info ? 'pinned' : '',
+        'info',
+        !state.isMobile && pinned.info === null ? 'preview' : '',
+      ]">
         <label v-on:click="pinMenuItem('info')">
           УСЛУГИ СТУДИИ <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
         </label>
@@ -106,19 +95,14 @@
       </div>
     </div>
 
-    <img
-      id="bg-img"
-      src="./assets/lobby.png"
-      usemap="#image-map"
-      :style="{
-        position: 'absolute',
-        left: `${bg.left || 0}px`,
-        top: `${bg.top || 0}px`,
-        scale: bg.scale || 1,
-        transformOrigin: 'center',
-        filter: 'grayscale(1)',
-      }"
-    />
+    <img id="bg-img" src="./assets/lobby.png" usemap="#image-map" :style="{
+      position: 'absolute',
+      left: `${bg.left || 0}px`,
+      top: `${bg.top || 0}px`,
+      scale: bg.scale || 1,
+      transformOrigin: 'center',
+      filter: 'grayscale(1)',
+    }" />
   </div>
 </template>
 
@@ -201,6 +185,55 @@ export default {
           users: this.lobby.users || {},
           items: this.lobby.chat || {},
         },
+      };
+    },
+    defaultTutorialMenu() {
+      return {
+        text: 'Чем могу помочь?',
+        bigControls: true,
+        buttons: [
+          {
+            text: 'Открой мой профиль', action: async function () {
+              this.menu = null;
+              this.showProfile();
+            }
+          },
+          {
+            text: 'Активировать подсказки', action: async function () {
+              await api.action
+                .call({
+                  path: 'helper.api.restoreLinks',
+                  args: [{ inGame: false }],
+                })
+                .then(() => {
+                  this.menu = null;
+                  {
+                    // перерисовываем helper-а, чтобы отобразились подсказки
+                    this.resetFlag = true;
+                    setTimeout(() => {
+                      this.resetFlag = false;
+                    }, 100);
+                  }
+                })
+                .catch(prettyAlert);
+            }
+          },
+          {
+            text: 'Покажи доступные обучения',
+            action: {
+              text: 'Нажмите на нужное обучение в списке, чтобы запустить его повторно:',
+              showList: [
+                { title: 'Стартовое приветствие', action: { tutorial: 'lobby-tutorial-start' } },
+                { title: 'Игровая комната', action: { tutorial: 'lobby-tutorial-menuGame' } },
+              ],
+              buttons: [
+                { text: 'Назад в меню', action: 'init' },
+                { text: 'Спасибо', action: 'exit', exit: true },
+              ],
+            },
+          },
+          { text: 'Спасибо, ничего не нужно', action: 'exit', exit: true },
+        ],
       };
     },
   },
@@ -376,6 +409,7 @@ export default {
 <style src="vue2-perfect-scrollbar/dist/vue2-perfect-scrollbar.css" />
 <style lang="scss">
 @import '@/mixins.scss';
+
 #lobby {
   height: 100%;
   width: 100%;
@@ -416,7 +450,8 @@ export default {
     overflow: auto;
   }
 }
-.menu-item.pinned > div {
+
+.menu-item.pinned>div {
   max-height: none !important;
 }
 
@@ -433,15 +468,19 @@ export default {
     &.info {
       top: 0%;
     }
+
     &.top {
       top: 20%;
     }
+
     &.list {
       top: 40%;
     }
+
     &.chat {
       top: 60%;
     }
+
     &.game {
       top: 80%;
     }
@@ -454,6 +493,7 @@ export default {
     }
   }
 }
+
 #lobby.mobile-view.landscape-view .menu-item-list {
   margin-top: 5%;
   width: 50%;
@@ -464,22 +504,26 @@ export default {
       left: 100%;
       top: 150px;
       width: 90%;
+
       &.pinned,
       &.tutorial-active {
         left: 0px;
         top: 0px;
         width: 100%;
+
         label {
           display: initial;
           white-space: nowrap;
           left: 20%;
         }
+
         .menu-item-content {
           width: 185%;
         }
       }
     }
-    > div {
+
+    >div {
       top: auto;
       left: 5%;
       width: 185%;
@@ -489,7 +533,8 @@ export default {
 }
 
 $textshadow: rgb(42, 22, 23);
-.menu-item > label {
+
+.menu-item>label {
   cursor: pointer;
   position: relative;
   color: crimson;
@@ -517,9 +562,10 @@ $textshadow: rgb(42, 22, 23);
     background-size 0.7s,
     background-position 0.5s ease-in-out;
 }
-.menu-item:hover > label,
-.menu-item.pinned > label,
-#lobby:not(.mobile-view) .menu-item.tutorial-active > label {
+
+.menu-item:hover>label,
+.menu-item.pinned>label,
+#lobby:not(.mobile-view) .menu-item.tutorial-active>label {
   background-size: 100% 100%;
   background-position: 0% 100%;
   transition:
@@ -527,7 +573,8 @@ $textshadow: rgb(42, 22, 23);
     background-size 0.5s ease-in-out;
   box-shadow: 1px 0px 20px 6px rgba(0, 0, 0, 1);
 }
-.menu-item > label > svg {
+
+.menu-item>label>svg {
   display: none;
   padding: 10px;
   position: absolute;
@@ -544,14 +591,15 @@ $textshadow: rgb(42, 22, 23);
     opacity: 0.7;
   }
 }
-.menu-item.pinned > label > svg {
+
+.menu-item.pinned>label>svg {
   display: inline-block;
 }
 
-#lobby:not(.mobile-view) .menu-item:hover > div,
-.menu-item.pinned > div,
-.menu-item.preview > div,
-.menu-item.tutorial-active > div {
+#lobby:not(.mobile-view) .menu-item:hover>div,
+.menu-item.pinned>div,
+.menu-item.preview>div,
+.menu-item.tutorial-active>div {
   visibility: visible;
   opacity: 1;
 }
@@ -561,7 +609,8 @@ $textshadow: rgb(42, 22, 23);
   left: calc(50% + 400px);
 
   $info_textshadow: rgb(42, 22, 23);
-  > label {
+
+  >label {
     font-size: 2.5em;
     letter-spacing: 6px;
     color: white;
@@ -578,7 +627,7 @@ $textshadow: rgb(42, 22, 23);
       $info_textshadow 4.01478px 4.45887px 0px,
       $info_textshadow 4.68391px 5.20201px 0px;
 
-    > svg {
+    >svg {
       color: #1976d2;
       width: 18px;
       height: 18px;
@@ -588,21 +637,22 @@ $textshadow: rgb(42, 22, 23);
     }
   }
 
-  &.pinned > label,
-  &:hover > label {
+  &.pinned>label,
+  &:hover>label {
     background-image: linear-gradient(#1976d2, #1976d2);
+
     &:before {
       display: none;
     }
   }
 
-  &.preview:not(.pinned) > div {
+  &.preview:not(.pinned)>div {
     height: 180px;
     overflow: hidden;
   }
 
-  > div,
-  &.info.preview:hover > div {
+  >div,
+  &.info.preview:hover>div {
     height: 460px;
     width: 400px;
     border-color: #1976d2;
@@ -613,24 +663,29 @@ $textshadow: rgb(42, 22, 23);
   top: 70%;
   left: 45%;
 }
+
 .menu-item.game.pinned {
   top: 45%;
   left: 45%;
 }
-.menu-item.game > label {
+
+.menu-item.game>label {
   display: block;
   white-space: pre-line;
 }
-.menu-item.game > div {
+
+.menu-item.game>div {
   height: 300px;
   width: 500px;
   max-height: 200px;
 }
+
 .menu-item.chat {
   top: 60%;
   left: 10%;
 }
-.menu-item.chat > label > small {
+
+.menu-item.chat>label>small {
   font-size: 16px;
   letter-spacing: 0px;
   text-align: right;
@@ -641,36 +696,44 @@ $textshadow: rgb(42, 22, 23);
   top: -16px;
   color: #0078d7;
 }
+
 .menu-item.chat.pinned {
   top: 10%;
   left: 10%;
 }
-.menu-item.chat > div {
+
+.menu-item.chat>div {
   height: 500px;
   width: 300px;
   max-height: 200px;
 }
+
 .menu-item.top {
   top: 35%;
   left: 40%;
 }
+
 .menu-item.top.pinned {
   top: 10%;
   left: 40%;
 }
-.menu-item.top > div {
+
+.menu-item.top>div {
   height: 200px;
   width: 500px;
 }
+
 .menu-item.list {
   top: 45%;
   left: 80%;
 }
+
 .menu-item.list.pinned {
   top: 20%;
   left: 80%;
 }
-.menu-item.list > div {
+
+.menu-item.list>div {
   height: 500px;
   width: 400px;
   max-height: 300px;
@@ -681,33 +744,37 @@ $textshadow: rgb(42, 22, 23);
   width: 100%;
   transform: none;
 }
-#lobby.mobile-view .menu-item > div {
+
+#lobby.mobile-view .menu-item>div {
   top: auto;
   left: 5%;
   width: 90%;
   height: 100%;
 }
 
-#lobby.mobile-view .menu-item.game > label {
+#lobby.mobile-view .menu-item.game>label {
   max-width: 220px;
   margin: auto;
 }
-#lobby.mobile-view.portrait-view .menu-item.game > div {
+
+#lobby.mobile-view.portrait-view .menu-item.game>div {
   height: 90%;
 }
-#lobby.mobile-view.landscape-view .menu-item.game > label {
+
+#lobby.mobile-view.landscape-view .menu-item.game>label {
   max-width: 450px;
 }
 
 .menu-item.tutorial-active {
   background: white;
 }
+
 #lobby.mobile-view .menu-item.tutorial-active {
   background: transparent;
   box-shadow: none;
 }
 
-#lobby > .main-logo {
+#lobby>.main-logo {
   z-index: 1;
   position: absolute;
   width: 400px;
@@ -738,15 +805,18 @@ $textshadow: rgb(42, 22, 23);
         opacity: 0.7;
       }
     }
+
     .telegram-link {
       background-image: url(assets/telegram.png);
     }
+
     .vk-link {
       background-image: url(assets/vk.png);
     }
   }
 }
-#lobby.mobile-view > .main-logo {
+
+#lobby.mobile-view>.main-logo {
   width: 300px;
   height: 150px;
   left: calc(50% - 150px);
@@ -756,7 +826,8 @@ $textshadow: rgb(42, 22, 23);
     right: 15px;
   }
 }
-#lobby.mobile-view.landscape-view > .main-logo {
+
+#lobby.mobile-view.landscape-view>.main-logo {
   left: auto;
   right: 10px;
   top: -25px;
@@ -768,58 +839,64 @@ $textshadow: rgb(42, 22, 23);
   color: white;
   text-align: left;
 }
-.menu-item.info ul > li,
-.menu-item.list ul > li {
+
+.menu-item.info ul>li,
+.menu-item.list ul>li {
   padding-bottom: 20px;
 }
-.menu-item.info ul > li > label,
-.menu-item.info ul > li > label > a,
-.menu-item.info ul > li::marker,
-.menu-item.list ul > li > label,
-.menu-item.list ul > li > label > a,
-.menu-item.list ul > li::marker {
+
+.menu-item.info ul>li>label,
+.menu-item.info ul>li>label>a,
+.menu-item.info ul>li::marker,
+.menu-item.list ul>li>label,
+.menu-item.list ul>li>label>a,
+.menu-item.list ul>li::marker {
   cursor: pointer;
   font-family: fantasy;
   font-size: 24px;
   color: #f4e205;
   text-decoration: none;
 }
-.menu-item.list ul > li > span {
+
+.menu-item.list ul>li>span {
   cursor: pointer;
   color: #f4e205;
 }
 
-.menu-item ul > li.white > label,
-.menu-item ul > li.white > label > a,
-.menu-item ul > li.white::marker {
-  color: white;
-}
-.menu-item.info ul > li > label,
-.menu-item.info ul > li > label > a,
-.menu-item.info ul > li::marker {
-  color: crimson;
-}
-.menu-item.list ul > li:not(.disabled) label:hover,
-.menu-item.list ul > li:not(.disabled) label:hover > a,
-.menu-item.list ul > li > span:hover,
-.menu-item.list ul > li:not(.disabled):hover::marker,
-.menu-item.info ul > li:not(.disabled) > label:hover,
-.menu-item.info ul > li > span:hover,
-.menu-item.info ul > li:not(.disabled):hover::marker {
+.menu-item ul>li.white>label,
+.menu-item ul>li.white>label>a,
+.menu-item ul>li.white::marker {
   color: white;
 }
 
-.menu-item.list ul > li.disabled > label {
+.menu-item.info ul>li>label,
+.menu-item.info ul>li>label>a,
+.menu-item.info ul>li::marker {
+  color: crimson;
+}
+
+.menu-item.list ul>li:not(.disabled) label:hover,
+.menu-item.list ul>li:not(.disabled) label:hover>a,
+.menu-item.list ul>li>span:hover,
+.menu-item.list ul>li:not(.disabled):hover::marker,
+.menu-item.info ul>li:not(.disabled)>label:hover,
+.menu-item.info ul>li>span:hover,
+.menu-item.info ul>li:not(.disabled):hover::marker {
+  color: white;
+}
+
+.menu-item.list ul>li.disabled>label {
   cursor: default !important;
 }
-.menu-item.list ul > li.disabled > label:not(.not-disabled):after {
+
+.menu-item.list ul>li.disabled>label:not(.not-disabled):after {
   content: '(в разработке)';
   color: grey;
   font-size: 20px;
   padding-left: 10px;
 }
 
-.menu-item.list ul > li > hr {
+.menu-item.list ul>li>hr {
   width: 80%;
   margin: 6px 0px;
 }
@@ -832,6 +909,7 @@ $textshadow: rgb(42, 22, 23);
   padding: 4px 8px;
   cursor: pointer;
 }
+
 .lobby-btn:hover,
 .lobby-btn[disabled='disabled'] {
   background: black !important;
@@ -842,7 +920,7 @@ $textshadow: rgb(42, 22, 23);
   display: flex !important;
 }
 
-#lobby > .auth {
+#lobby>.auth {
   z-index: 10001;
   position: fixed;
   left: 0px;
@@ -853,7 +931,8 @@ $textshadow: rgb(42, 22, 23);
   background-size: cover;
   display: grid;
 }
-#lobby > .auth > .form {
+
+#lobby>.auth>.form {
   align-self: center;
   justify-self: center;
   width: 400px;
@@ -865,14 +944,17 @@ $textshadow: rgb(42, 22, 23);
   max-width: 90%;
   position: fixed;
 }
-#lobby > .auth > .form > * {
+
+#lobby>.auth>.form>* {
   width: 100%;
 }
-#lobby > .auth > .form > .inputs {
+
+#lobby>.auth>.form>.inputs {
   display: flex;
   margin: 10px;
 }
-#lobby > .auth > .form > .inputs > input {
+
+#lobby>.auth>.form>.inputs>input {
   width: 50%;
   font-size: 14px;
   padding: 2px 8px;
@@ -880,21 +962,25 @@ $textshadow: rgb(42, 22, 23);
   border: 2px solid #f4e205;
   color: #f4e205;
 }
-#lobby > .auth > .form > button {
+
+#lobby>.auth>.form>button {
   margin: 10px;
   background: transparent;
   color: #f4e205;
   border: 2px solid #f4e205;
   cursor: pointer;
 }
-#lobby > .auth > .form > button:hover {
+
+#lobby>.auth>.form>button:hover {
   opacity: 0.7;
 }
-#lobby > .auth > .form > button.new {
+
+#lobby>.auth>.form>button.new {
   background-color: #f4e205;
   color: black;
 }
-#lobby > .auth > .form > .err {
+
+#lobby>.auth>.form>.err {
   color: orangered;
 }
 </style>

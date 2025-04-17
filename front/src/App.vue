@@ -1,9 +1,6 @@
 <template>
-  <div
-    id="app"
-    :class="[state.isMobile ? 'mobile-view' : '', state.isLandscape ? 'landscape-view' : 'portrait-view']"
-    :current-route="$root.state.currentRoute"
-  >
+  <div id="app" :class="[state.isMobile ? 'mobile-view' : '', state.isLandscape ? 'landscape-view' : 'portrait-view']"
+    :current-route="$root.state.currentRoute">
     <button @click="toggleFullscreen" class="fullscreen-btn">
       <span v-if="!state.isFullscreen">
         <font-awesome-icon icon="fa-solid fa-expand" class="fa-xl" />
@@ -115,7 +112,8 @@ body {
   height: 100%;
   width: 100%;
 }
-#app > .exit {
+
+#app>.exit {
   position: absolute;
   bottom: 0px;
   width: 100%;
@@ -124,17 +122,20 @@ body {
   padding: 20px;
   font-size: 20px;
 }
-#app > .exit > button {
+
+#app>.exit>button {
   background: #ccc;
   border: none;
   font-size: 20px;
   padding: 4px 40px;
 }
-#app > .exit > button:hover {
+
+#app>.exit>button:hover {
   cursor: pointer;
   opacity: 0.8;
 }
-#app > .error {
+
+#app>.error {
   color: white;
   background: #ff000080;
   padding: 20px;
@@ -160,15 +161,19 @@ body {
   cursor: pointer;
   opacity: 1;
 }
+
 #app.mobile-view .fullscreen-btn {
   left: 70px;
 }
+
 #app[current-route='Lobby'] .fullscreen-btn {
   left: 10px;
 }
+
 .fullscreen-btn svg {
   padding-right: 4px;
 }
+
 .fullscreen-btn:hover {
   opacity: 0.7;
 }
@@ -178,10 +183,12 @@ body {
   animation-fill-mode: forwards;
   visibility: hidden;
 }
+
 @keyframes fadeIn {
   99% {
     visibility: hidden;
   }
+
   100% {
     visibility: visible;
   }
@@ -199,6 +206,7 @@ body {
     }
   }
 }
+
 button[disabled='disabled'] {
   opacity: 0.5;
 }
@@ -208,14 +216,17 @@ button[disabled='disabled'] {
   height: 100%;
   width: 100%;
 }
+
 .fancybox__container .fancybox__toolbar .fancybox__toolbar__column.is-middle {
   position: absolute;
   bottom: 100px;
   width: 100%;
 }
+
 .fancybox__container.has-toolbar.is-compact .fancybox__toolbar__column.is-middle {
   bottom: 80px;
 }
+
 .fancybox__container.has-toolbar .fancybox__toolbar .choose-btn {
   background-color: #f4e205;
   margin-top: 10px;
@@ -236,9 +247,11 @@ button[disabled='disabled'] {
   padding: 4px 8px;
   cursor: pointer;
 }
+
 .fancybox__container.has-toolbar .fancybox__toolbar .choose-btn:active {
   opacity: 0;
 }
+
 .fancybox__container.has-toolbar .fancybox__toolbar .choose-btn:after {
   content: '';
   background: #837800;
@@ -249,15 +262,18 @@ button[disabled='disabled'] {
   opacity: 0;
   transition: all 0.8s;
 }
+
 .fancybox__container.has-toolbar .fancybox__toolbar .choose-btn:active:after {
   padding: 0;
   margin: 0;
   opacity: 1;
   transition: 0s;
 }
+
 .fancybox__container .fancybox__content img.new {
   outline: 4px solid gold;
 }
+
 .fancybox__container .fancybox__content label {
   color: gold;
   font-size: 24px;
