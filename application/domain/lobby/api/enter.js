@@ -20,7 +20,12 @@ async (context, { lobbyId }) => {
   const { gameId, playerId, viewerId } = user;
   if (gameId) {
     const gameInfo = await db.redis.hget('games', gameId, { json: true });
-    if (!gameInfo) return { status: 'ok' };
+    if (!gameInfo) {
+      user.set({ gameId: null, playerId: null, viewerId: null });
+      await user.saveChanges();
+      
+      return { status: 'ok' };
+    }
 
     const { deckType, gameType } = gameInfo;
     let needLoadGame = false;

@@ -1,4 +1,4 @@
-(class Lobby extends lib.store.class(class {}, { broadcastEnabled: true }) {
+(class Lobby extends lib.store.class(class { }, { broadcastEnabled: true }) {
   gameServers = {};
 
   users = {};
@@ -177,26 +177,26 @@
       ...data,
       ...(data.users
         ? {
-            users: Object.fromEntries(
-              Object.entries(lib.utils.clone(data.users))
-                .filter(
-                  ([id, user]) =>
-                    user.online === null || // юзер только что вышел из лобби
-                    // ниже проверки для рассылок по событию addSubscriber
-                    this.users[id].online || // не делаем рассылку тех, кто оффлайн
-                    this.rankingsUsersTop.includes(id) // оставляем в рассылке тех, что входит в топ рейтингов (чтобы отобразить их в таблицах рейтингов)
-                )
-                .map(([id, user]) => {
-                  // if (id === userId) user.iam = true;
-                  if (user.online) user = { ...this.users[id] }; // установка online произошла позже, чем отработал addSubscriber (без этого пользователь появится на фронте, но без данных)
+          users: Object.fromEntries(
+            Object.entries(lib.utils.clone(data.users))
+              .filter(
+                ([id, user]) =>
+                  user.online === null || // юзер только что вышел из лобби
+                  // ниже проверки для рассылок по событию addSubscriber
+                  this.users[id].online || // не делаем рассылку тех, кто оффлайн
+                  this.rankingsUsersTop.includes(id) // оставляем в рассылке тех, что входит в топ рейтингов (чтобы отобразить их в таблицах рейтингов)
+              )
+              .map(([id, user]) => {
+                // if (id === userId) user.iam = true;
+                if (user.online) user = { ...this.users[id] }; // установка online произошла позже, чем отработал addSubscriber (без этого пользователь появится на фронте, но без данных)
 
-                  // если бы не строчка выше, то делал бы это в prepareInitialDataForSubscribers()
-                  if (user.events) delete user.events;
-                  if (user.sessions) delete user.sessions;
-                  return [id, user];
-                })
-            ),
-          }
+                // если бы не строчка выше, то делал бы это в prepareInitialDataForSubscribers()
+                if (user.events) delete user.events;
+                if (user.sessions) delete user.sessions;
+                return [id, user];
+              })
+          ),
+        }
         : {}),
     };
   }
@@ -365,7 +365,7 @@
     });
     await this.saveChanges();
   }
-  async addGame({ creator, gameId, deckType, gameType, gameConfig, gameTimer, playerMap }) {
+  async addGame({ creator, gameId, deckType, gameType, gameConfig, gameTimer, playerMap, restorationMode }) {
     await this.subscribe(`game-${gameId}`, { rule: 'custom', ruleHandler: 'lobbySub' });
     await this.saveChanges();
 
@@ -381,17 +381,13 @@
 
     await lib.store.broadcaster.publishData(`game-${gameId}`, { store: { player } });
 
-    const {
-      [deckType]: {
-        games: {
-          [gameType]: {
-            items: { [gameConfig]: playerCount },
-          },
-        },
-      },
-    } = this.gameServers;
+    const { [deckType]: { games: {
+      [gameType]: { items: {
+        [gameConfig]: { teamsCount, playerCount }
+      } }
+    } } } = this.gameServers;
 
-    if (parseInt(playerCount) > 1) { // может прийти строка вида "XX-XX"
+    if ((parseInt(teamsCount) > 1 || parseInt(playerCount) > 1) && !restorationMode) { // может прийти строка вида "XX-XX"
       await this.notifyWatchers({
         msg: `Нужны игроки в новую игру (${gameType})`,
         tgUsername: creator.tgUsername,
@@ -459,9 +455,9 @@
       const usersTop = !sortFunc
         ? []
         : draftUsersTop
-            .sort(sortFunc)
-            .map(({ userId }) => userId)
-            .splice(0, 5);
+          .sort(sortFunc)
+          .map(({ userId }) => userId)
+          .splice(0, 5);
 
       this.set({
         rankings: {

@@ -2,79 +2,51 @@
   <div :class="['games', bigConfig ? 'big-config' : '']">
     <div class="new-game-controls">
       <div class="breadcrumbs">
-        <span
-          :class="['select-btn', deckType ? 'active selected' : '']"
-          @click="selectGameConfig(null), selectGameType(null), selectDeckType(null)"
-        >
+        <span :class="['select-btn', deckType ? 'active selected' : '']"
+          @click="selectGameConfig(null), selectGameType(null), selectDeckType(null)">
           {{ deckMap[deckType]?.title || 'Выбор колоды:' }}
         </span>
-        <span
-          v-if="deckType"
-          :class="['select-btn', gameType ? 'active selected' : '']"
-          @click="selectGameConfig(null), selectGameType(null)"
-        >
+        <span v-if="deckType" :class="['select-btn', gameType ? 'active selected' : '']"
+          @click="selectGameConfig(null), selectGameType(null)">
           {{ gameTypeMap[gameType]?.title || 'Выбор типа игры:' }}
         </span>
-        <span
-          v-if="gameType"
-          :class="['select-btn', gameConfig ? 'active selected' : '']"
-          @click="selectGameConfig(null)"
-        >
+        <span v-if="gameType" :class="['select-btn', gameConfig ? 'active selected' : '']"
+          @click="selectGameConfig(null)">
           {{ gameConfigMap[gameConfig] ? gameConfigMap[gameConfig].title : 'Выбор режима:' }}
         </span>
       </div>
       <div v-if="!deckType" class="game-types">
-        <div
-          v-for="[code, game] in gameDeckList"
-          :key="code"
+        <div v-for="[code, game] in gameDeckList" :key="code"
           :class="['select-btn', 'wait-for-select', game.active === false ? 'disabled' : '']"
-          @click="selectDeckType(code)"
-        >
+          @click="selectDeckType(code)">
           <div class="title"><font-awesome-icon :icon="game.icon" /> {{ game.title }}</div>
         </div>
       </div>
 
       <div v-if="!gameType" :class="['game-block', `${deckType}-game`]">
-        <div
-          v-for="[code, game] in gameTypeList"
-          :key="code"
+        <div v-for="[code, game] in gameTypeList" :key="code"
           :class="['select-btn', 'wait-for-select', code, game.active === false ? 'disabled' : '']"
-          :style="game.style || {}"
-          @click="selectGameType(code)"
-        >
+          :style="game.style || {}" @click="selectGameType(code)">
           <font-awesome-icon :icon="game.icon" /> {{ game.title }}
         </div>
       </div>
 
       <div v-if="!gameConfig" :class="['game-config-block', `${deckType}-game-config`]">
-        <div
-          v-for="[code, config] in gameConfigList"
-          :key="code"
-          :class="['select-btn', 'wait-for-select', code]"
-          :style="config.style || {}"
-          v-on:click="selectGameConfig(code)"
-        >
+        <div v-for="[code, config] in gameConfigList" :key="code" :class="['select-btn', 'wait-for-select', code]"
+          :style="config.style || {}" v-on:click="selectGameConfig(code)">
           {{ config.title }}
         </div>
       </div>
 
       <div v-if="gameConfig" class="game-start-block">
-        <div v-if="playerCount.val" class="player-count-config">
+        <div v-if="teamsCount.val" class="player-count-config">
           <div>
             <span class="controls">
-              <font-awesome-icon :icon="['fas', 'plus']" @click="updatePlayerCount(1)" />
-              {{ playerCount.val }}
-              <font-awesome-icon :icon="['fas', 'minus']" @click="updatePlayerCount(-1)" />
+              <font-awesome-icon :icon="['fas', 'plus']" @click="updateTeamsCount(1)" />
+              {{ teamsCount.val }}
+              <font-awesome-icon :icon="['fas', 'minus']" @click="updateTeamsCount(-1)" />
             </span>
-            <span class="label"> всего игроков</span>
-          </div>
-          <div>
-            <span class="controls">
-              <font-awesome-icon :icon="['fas', 'plus']" @click="updateMaxPlayersInGame(1)" />
-              {{ maxPlayersInGame.val }}
-              <font-awesome-icon :icon="['fas', 'minus']" @click="updateMaxPlayersInGame(-1)" />
-            </span>
-            <span class="label"> в команде</span>
+            <span class="label"> всего команд</span>
           </div>
         </div>
         <div>
@@ -91,14 +63,8 @@
     <hr />
     <div class="game-list-container">
       <perfect-scrollbar class="game-list">
-        <div>моя незаконченная игра</div>
-        <hr />
-        <div v-for="game in lobbyGameList" :key="game._id" class="game-item">
-          <div v-if="game.joinedPlayers">
-            <div>
-              <span v-if="game.waitForPlayer">Игроков: {{ game.joinedPlayers }}</span>
-              <span v-if="!game.waitForPlayer">Идет {{ game.round }} раунд</span>
-            </div>
+        <div v-for="game in lobbyGameList" :key="game.id" class="game-item">
+          <div v-if="game.joinedPlayers" :style="{ width: 'calc(100% - 200px)' }">
             <div class="game-config-info">
               <span>
                 <font-awesome-icon :icon="deckMap[game.deckType].icon" :style="{ marginRight: '2px' }" />
@@ -106,26 +72,44 @@
                 {{ deckMap[game.deckType].games[game.gameType].items[game.gameConfig].title }}
               </span>
               <span style="margin-left: 10px">
-                <font-awesome-icon :icon="['fas', 'stopwatch']" /> {{ game.gameTimer.DEFAULT }} сек
+                <font-awesome-icon :icon="['fas', 'stopwatch']" /> {{ game.gameTimer / 1000 }} сек
               </span>
             </div>
+            <div>
+              <button :style="{ color: '#f4e205', fontWeight: 'bold', marginRight: '8px', cursor: 'pointer' }"
+                v-on:click="showTeam(game.id)">\/</button>
+              <span v-if="game.waitForPlayer && game.teams" :style="{ marginRight: '8px' }"
+                class="teams-btn">Команд: {{ game.teams.length }}</span>
+              <span v-if="game.waitForPlayer && game.joinedPlayers">Игроков: {{ game.joinedPlayers }}</span>
+              <span v-if="!game.waitForPlayer || game.round"> Идет {{ game.round }} раунд </span>
+            </div>
           </div>
-          <span v-if="game.joinedPlayers && !game.waitForPlayer" :style="{ color: '#f4e205' }">
-            <button
-              class="lobby-btn join-btn viewer"
-              v-on:click="joinGame({ gameId: game.id, deckType: game.deckType, viewerMode: true })"
-            >
-              <font-awesome-icon :icon="['fas', 'eye']" />
-              Посмотреть
+          <div :style="{ flexShrink: 0 }">
+            <button v-if="game.waitForPlayer || game.teams.length > 0" class="lobby-btn join-btn"
+              v-on:click="joinGame({ gameId: game.id, deckType: game.deckType })">
+              Присоединиться
             </button>
-          </span>
-          <button
-            v-if="game.waitForPlayer"
-            class="lobby-btn join-btn"
-            v-on:click="joinGame({ gameId: game.id, deckType: game.deckType })"
-          >
-            Присоединиться
-          </button>
+            <span v-if="game.joinedPlayers && (!game.waitForPlayer || game.round)" :style="{
+              color: '#f4e205',
+              display: 'block',
+              margin: '4px'
+            }">
+              <button class="lobby-btn join-btn viewer"
+                v-on:click="joinGame({ gameId: game.id, deckType: game.deckType, viewerMode: true })">
+                <font-awesome-icon :icon="['fas', 'eye']" />
+                Посмотреть
+              </button>
+            </span>
+          </div>
+          <div v-if="showTeams[game.id]" :style="{ width: '100%' }">
+            <div v-for="team in game.teams" :key="team.id">
+              <span>{{ team.title }}</span>
+              <button class="lobby-btn join-btn small-btn" :style="{ border: 'none', marginLeft: '8px' }"
+                v-on:click="joinGame({ gameId: game.id, deckType: game.deckType, teamId: team.id })">
+                Присоединиться
+              </button>
+            </div>
+          </div>
         </div>
       </perfect-scrollbar>
     </div>
@@ -151,8 +135,10 @@ export default {
       gameType: null,
       gameConfig: null,
       gameTimer: 60,
+      teamsCount: { min: null, max: null, val: null },
       playerCount: { min: null, max: null, val: null },
       maxPlayersInGame: { min: null, max: null, val: null },
+      showTeams: {},
     };
   },
   watch: {},
@@ -198,11 +184,25 @@ export default {
       const list = Object.entries(this.lobby.games || {})
         .map(([id, game]) => Object.assign({}, game, { id }))
         .map((game) => {
+          let waitForPlayer = game.status === 'WAIT_FOR_PLAYERS';
           if (game.playerMap) {
             const players = Object.keys(game.playerMap).map((id) => game.store?.player[id] || {});
-            game.joinedPlayers = players.filter((player) => player.ready).length + ' из ' + players.length;
+            const readyPlayers = players.filter((player) => player.ready);
+            game.joinedPlayers = readyPlayers.length + ' из ' + players.length;
+            if (readyPlayers.length < players.length) waitForPlayer = true;
           }
-          if (game.status === 'WAIT_FOR_PLAYERS') game.waitForPlayer = true;
+          if (game.gamesMap) {
+            const players = Object.keys(game.playerMap).map((id) => game.store?.player[id] || {});
+            game.joinedPlayers = players.length;
+            game.teams = Object.entries(game.gamesMap).map(([id, playersMap]) => {
+              const players = Object.values(playersMap).map((userId) => (this.lobby.users[userId]?.name || 'игрок без имени')).join(', ');
+              return {
+                id,
+                title: game.store?.game[id]?.title + ' (' + (players.length ? players : '') + ')',
+              }
+            });
+          }
+          if (waitForPlayer) game.waitForPlayer = true;
           return game;
         })
         .reverse();
@@ -214,23 +214,28 @@ export default {
       return sortedList;
     },
     bigConfig() {
-      return this.playerCount.val > 0 ? true : false;
+      return this.teamsCount.val > 0 ? true : false;
     },
   },
   methods: {
     prepareGameConfigs(userData = {}) {
       if (this.gameConfigsLoaded) return;
-
       const configs = userData.lobbyGameConfigs;
       if (!configs) return;
 
-      const { deckType, gameType, gameConfig, gameTimer, playerCount, maxPlayersInGame } = configs.active;
+      const { deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame } = configs.active;
 
       this.$set(this, 'deckType', deckType);
       this.$set(this, 'gameType', gameType);
       this.$set(this, 'gameConfig', gameConfig);
 
       if (gameTimer) this.$set(this, 'gameTimer', gameTimer);
+      if (teamsCount) {
+        const { min, max, val } = teamsCount;
+        this.$set(this.teamsCount, 'min', min);
+        this.$set(this.teamsCount, 'max', max);
+        this.$set(this.teamsCount, 'val', val);
+      }
       if (playerCount) {
         const { min, max, val } = playerCount;
         this.$set(this.playerCount, 'min', min);
@@ -260,7 +265,16 @@ export default {
     selectGameConfig(type) {
       this.gameConfig = type;
 
-      const { playerCount, maxPlayersInGame } = this.gameConfigMap[type] || {};
+      const { teamsCount, playerCount, maxPlayersInGame } = this.gameConfigMap[type] || {};
+
+      this.$set(this, 'teamsCount', { min: null, max: null, val: null });
+      if (teamsCount && teamsCount.toString().includes('-')) {
+        const [min, max] = teamsCount
+          .toString()
+          .split('-')
+          .map((num) => parseInt(num));
+        this.$set(this, 'teamsCount', { min, max, val: max });
+      }
 
       this.$set(this, 'playerCount', { min: null, max: null, val: null });
       if (playerCount && playerCount.toString().includes('-')) {
@@ -285,6 +299,11 @@ export default {
       if (this.gameTimer > 120) this.gameTimer = 120;
       if (this.gameTimer < 15) this.gameTimer = 15;
     },
+    updateTeamsCount(countShift) {
+      this.teamsCount.val += countShift;
+      if (this.teamsCount.val > this.teamsCount.max) this.teamsCount.val = this.teamsCount.max;
+      if (this.teamsCount.val < this.teamsCount.min) this.teamsCount.val = this.teamsCount.min;
+    },
     updatePlayerCount(countShift) {
       this.playerCount.val += countShift;
       if (this.playerCount.val > this.playerCount.max) this.playerCount.val = this.playerCount.max;
@@ -296,7 +315,7 @@ export default {
       if (this.maxPlayersInGame.val < this.maxPlayersInGame.min) this.maxPlayersInGame.val = this.maxPlayersInGame.min;
     },
     async addGame() {
-      const { deckType, gameType, gameConfig, gameTimer, playerCount, maxPlayersInGame } = this;
+      const { deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame } = this;
 
       if (!deckType || !gameType || !gameConfig) prettyAlert({ message: 'game config not set' });
 
@@ -306,7 +325,7 @@ export default {
           args: [
             {
               lobbyGameConfigs: {
-                active: { deckType, gameType, gameConfig, gameTimer, playerCount, maxPlayersInGame },
+                active: { deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame },
               },
             },
           ],
@@ -318,7 +337,7 @@ export default {
 
       window.iframeEvents.push({
         data: {
-          args: [{ deckType, gameType, gameConfig, gameTimer, playerCount, maxPlayersInGame }],
+          args: [{ deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame }],
         },
         event: ({ args }) => {
           const $iframe = document.querySelector('#gameIframe');
@@ -327,14 +346,14 @@ export default {
       });
       this.showGameIframe({ deckType });
     },
-    async joinGame({ gameId, deckType, viewerMode }) {
+    async joinGame({ gameId, deckType, viewerMode, teamId }) {
       // игровой сервер мог отключиться
       const { isAlive } = await api.action.call({ path: 'lobby.api.checkGame', args: [{ gameId }] }).catch(prettyAlert);
       if (!isAlive) return;
 
       window.iframeEvents.push({
         data: {
-          args: [{ gameId, viewerMode }],
+          args: [{ gameId, viewerMode, teamId }],
         },
         event: ({ args }) => {
           const $iframe = document.querySelector('#gameIframe');
@@ -343,10 +362,13 @@ export default {
       });
       this.showGameIframe({ deckType });
     },
+    showTeam(gameId) {
+      this.$set(this.showTeams, gameId, !this.showTeams[gameId]);
+    },
   },
-  async created() {},
-  async mounted() {},
-  async beforeDestroy() {},
+  async created() { },
+  async mounted() { },
+  async beforeDestroy() { },
 };
 </script>
 <style src="vue2-perfect-scrollbar/dist/vue2-perfect-scrollbar.css" />
@@ -368,14 +390,17 @@ export default {
       .select-btn:not(.active) {
         border: none;
         cursor: default !important;
+
         &:hover {
           opacity: 1 !important;
         }
       }
+
       .select-btn.active {
         &:hover {
           background: transparent;
           color: white;
+
           &::after {
             color: white;
           }
@@ -386,6 +411,7 @@ export default {
     .release-game {
       @include flex($wrap: wrap);
     }
+
     .game-types {
       @include flex();
       padding: 0px 10px;
@@ -406,10 +432,12 @@ export default {
         }
       }
     }
+
     .game-block {
       display: flex;
       justify-content: space-around;
     }
+
     .game-config-block {
       @include flex();
       padding: 0px 10px;
@@ -418,6 +446,7 @@ export default {
         text-align: center;
       }
     }
+
     .game-start-block {
       @include flex($wrap: wrap);
       max-width: 80%;
@@ -427,6 +456,7 @@ export default {
       .select-btn {
         text-align: center;
         max-width: 100px;
+
         &:hover {
           background: transparent;
           color: white;
@@ -457,11 +487,13 @@ export default {
 
         &.tutorial-active {
           box-shadow: none;
-          > svg {
+
+          >svg {
             box-shadow: 0 0 10px 10px #f4e205;
           }
         }
       }
+
       .label {
         margin: 0px 10px 0px 4px;
       }
@@ -498,17 +530,21 @@ export default {
 
       svg {
         width: 40px;
+
         @media only screen and (max-width: 360px) {
           width: 30px;
         }
       }
+
       &.active {
         background: #f4e205;
         color: black;
+
         svg {
           color: black !important;
         }
       }
+
       &.selected {
         &:after {
           content: 'X';
@@ -517,6 +553,7 @@ export default {
           font-weight: bold;
         }
       }
+
       &.disabled {
         border: 2px solid #ccc;
         background-color: #ccc;
@@ -539,6 +576,7 @@ export default {
     margin: 10px 30px;
     border-color: #f4e205;
   }
+
   .game-list-container {
     height: calc(100% - 100px);
 
@@ -555,23 +593,27 @@ export default {
 }
 
 .game-item {
-  @include flex($justify: space-between);
+  @include flex($justify: space-between, $wrap: wrap);
   margin: 4px auto;
   min-height: 30px;
   max-width: 400px;
+  text-align: left;
 
   .game-config-info {
     color: #f4e205;
     display: flex;
     justify-content: space-between;
-    > svg {
+
+    >svg {
       margin-left: 0px 4px;
     }
   }
 }
+
 .mobile-view .game-item {
   justify-content: center;
-  > * {
+
+  >* {
     margin: 4px 10px;
   }
 }
@@ -586,7 +628,8 @@ export default {
 .join-btn.viewer {
   background: transparent;
   color: #f4e205;
-  > svg {
+
+  >svg {
     color: #f4e205;
   }
 }
