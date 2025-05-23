@@ -75,16 +75,15 @@
                 <font-awesome-icon :icon="['fas', 'stopwatch']" /> {{ game.gameTimer / 1000 }} сек
               </span>
             </div>
-            <div>
-              <button :style="{ color: '#f4e205', fontWeight: 'bold', marginRight: '8px', cursor: 'pointer' }"
-                v-on:click="showTeam(game.id)">\/</button>
-              <span v-if="game.waitForPlayer && game.teams" :style="{ marginRight: '8px' }"
-                class="teams-btn">Команд: {{ game.teams.length }}</span>
+            <div :style="{ display: 'flex', alignItems: 'center' }">
+              <button :class="['show-teams', showTeamsOpen ? 'open' : '']" v-on:click="showTeam(game.id)" />
+              <span v-if="game.waitForPlayer && game.teams" :style="{ marginRight: '8px' }" class="teams-btn">Команд: {{
+                game.teams.length }}</span>
               <span v-if="game.waitForPlayer && game.joinedPlayers">Игроков: {{ game.joinedPlayers }}</span>
               <span v-if="!game.waitForPlayer || game.round"> Идет {{ game.round }} раунд </span>
             </div>
           </div>
-          <div :style="{ flexShrink: 0 }">
+          <div :style="{ flexShrink: 0, alignSelf: 'flex-start' }">
             <button v-if="game.waitForPlayer || game.teams.length > 0" class="lobby-btn join-btn"
               v-on:click="joinGame({ gameId: game.id, deckType: game.deckType })">
               Присоединиться
@@ -101,13 +100,20 @@
               </button>
             </span>
           </div>
-          <div v-if="showTeams[game.id]" :style="{ width: '100%' }">
-            <div v-for="team in game.teams" :key="team.id">
-              <span>{{ team.title }}</span>
-              <button class="lobby-btn join-btn small-btn" :style="{ border: 'none', marginLeft: '8px' }"
-                v-on:click="joinGame({ gameId: game.id, deckType: game.deckType, teamId: team.id })">
+          <div v-if="showTeams[game.id]" :style="{ width: '100%', fontSize: '12px' }">
+            <div v-for="team in game.teams" :key="team.id" :style="{ display: 'flex', marginBottom: '6px'  }">
+              <button class="lobby-btn join-btn small-btn" :style="{
+                border: 'none',
+                marginRight: '8px',
+                marginLeft: '24px',
+                marginTop: '4px',
+                marginBottom: '2px',
+                padding: '2px 6px',
+                height: '20px',
+              }" v-on:click="joinGame({ gameId: game.id, deckType: game.deckType, teamId: team.id })">
                 Присоединиться
               </button>
+              <span :style="{paddingTop: '6px'}">{{ team.title }}</span>
             </div>
           </div>
         </div>
@@ -139,6 +145,7 @@ export default {
       playerCount: { min: null, max: null, val: null },
       maxPlayersInGame: { min: null, max: null, val: null },
       showTeams: {},
+      showTeamsOpen: false,
     };
   },
   watch: {},
@@ -364,6 +371,7 @@ export default {
     },
     showTeam(gameId) {
       this.$set(this.showTeams, gameId, !this.showTeams[gameId]);
+      this.showTeamsOpen = !this.showTeamsOpen;
     },
   },
   async created() { },
@@ -582,6 +590,29 @@ export default {
 
     .game-list {
       height: 100%;
+    }
+
+    .show-teams {
+      cursor: pointer;
+      right: 10px;
+      top: 10px;
+      width: 18px;
+      height: 18px;
+      margin-right: 4px;
+      background-size: 14px;
+      background-color: transparent;
+      border: none;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-image: url(@/assets/arrow_down.png);
+
+      &.open {
+        background-image: url(@/assets/arrow_up.png);
+      }
+
+      &:hover {
+        opacity: 0.7;
+      }
     }
   }
 

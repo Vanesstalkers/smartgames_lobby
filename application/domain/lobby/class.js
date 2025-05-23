@@ -399,6 +399,11 @@
     this.set({ games: { [gameId]: null } });
     await this.saveChanges();
   }
+  async corporateGameFinished({ gameId, gameType }) {
+    await this.unsubscribe(`game-${gameId}`);
+    this.set({ games: { [gameId]: null } });
+    await this.saveChanges();
+  }
 
   async checkGame({ gameId, initUserId }) {
     if (this.games[gameId]?.status === 'FINISHED') {
