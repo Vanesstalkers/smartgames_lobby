@@ -84,7 +84,7 @@
             </div>
           </div>
           <div :style="{ flexShrink: 0, alignSelf: 'flex-start' }">
-            <button v-if="game.waitForPlayer || game.teams.length > 0" class="lobby-btn join-btn"
+            <button v-if="game.waitForPlayer || game.teams?.length > 0" class="lobby-btn join-btn"
               v-on:click="joinGame({ gameId: game.id, deckType: game.deckType })">
               Присоединиться
             </button>
