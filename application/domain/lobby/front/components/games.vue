@@ -42,20 +42,28 @@
         <div v-if="teamsCount.val" class="player-count-config">
           <div>
             <span class="controls">
-              <font-awesome-icon :icon="['fas', 'plus']" @click="updateTeamsCount(1)" />
-              {{ teamsCount.val }}
-              <font-awesome-icon :icon="['fas', 'minus']" @click="updateTeamsCount(-1)" />
+              <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
+              {{ gameTimer }}
+              <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameTimer(-15)" />
             </span>
-            <span class="label"> всего команд</span>
+            <span class="label"> секунд на ход</span>
+          </div>
+          <div>
+            <span class="controls">
+              <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameRoundLimit(1)" />
+              {{ gameRoundLimit }}
+              <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameRoundLimit(-1)" />
+            </span>
+            <span class="label"> лимит раундов на игру</span>
           </div>
         </div>
         <div>
           <span class="controls">
-            <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
-            {{ gameTimer }}
-            <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameTimer(-15)" />
+            <font-awesome-icon :icon="['fas', 'plus']" @click="updateTeamsCount(1)" />
+            {{ teamsCount.val }}
+            <font-awesome-icon :icon="['fas', 'minus']" @click="updateTeamsCount(-1)" />
           </span>
-          <span class="label"> секунд на ход</span>
+          <span class="label"> всего команд</span>
         </div>
         <button class="select-btn active" @click="addGame()">Начать игру</button>
       </div>
@@ -101,7 +109,7 @@
             </span>
           </div>
           <div v-if="showTeams[game.id]" :style="{ width: '100%', fontSize: '12px' }">
-            <div v-for="team in game.teams" :key="team.id" :style="{ display: 'flex', marginBottom: '6px'  }">
+            <div v-for="team in game.teams" :key="team.id" :style="{ display: 'flex', marginBottom: '6px' }">
               <button class="lobby-btn join-btn small-btn" :style="{
                 border: 'none',
                 marginRight: '8px',
@@ -113,7 +121,7 @@
               }" v-on:click="joinGame({ gameId: game.id, deckType: game.deckType, teamId: team.id })">
                 Присоединиться
               </button>
-              <span :style="{paddingTop: '6px'}">{{ team.title }}</span>
+              <span :style="{ paddingTop: '6px' }">{{ team.title }}</span>
             </div>
           </div>
         </div>
@@ -141,6 +149,7 @@ export default {
       gameType: null,
       gameConfig: null,
       gameTimer: 60,
+      gameRoundLimit: 40,
       teamsCount: { min: null, max: null, val: null },
       playerCount: { min: null, max: null, val: null },
       maxPlayersInGame: { min: null, max: null, val: null },
@@ -154,12 +163,7 @@ export default {
       return this.$root.state || {};
     },
     store() {
-      const store = this.state.store || {};
-
-      // не придумал другого способа как предустановить configs с учетом синхронной подгрузки userData
-      this.prepareGameConfigs(store.user?.[this.state.currentUser]);
-
-      return store;
+      return this.state.store || {};
     },
     userData() {
       const currentUserData = this.store.user?.[this.state.currentUser] || {};
@@ -225,18 +229,18 @@ export default {
     },
   },
   methods: {
-    prepareGameConfigs(userData = {}) {
-      if (this.gameConfigsLoaded) return;
-      const configs = userData.lobbyGameConfigs;
+    prepareGameConfigs() {
+      const configs = this.userData.lobbyGameConfigs;
       if (!configs) return;
 
-      const { deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame } = configs.active;
+      const { deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame, gameRoundLimit } = configs.active;
 
       this.$set(this, 'deckType', deckType);
       this.$set(this, 'gameType', gameType);
       this.$set(this, 'gameConfig', gameConfig);
 
       if (gameTimer) this.$set(this, 'gameTimer', gameTimer);
+      if (gameRoundLimit) this.$set(this, 'gameRoundLimit', gameRoundLimit);
       if (teamsCount) {
         const { min, max, val } = teamsCount;
         this.$set(this.teamsCount, 'min', min);
@@ -306,6 +310,11 @@ export default {
       if (this.gameTimer > 120) this.gameTimer = 120;
       if (this.gameTimer < 15) this.gameTimer = 15;
     },
+    updateGameRoundLimit(countShift) {
+      this.gameRoundLimit += countShift;
+      if (this.gameRoundLimit > 100) this.gameRoundLimit = 100;
+      if (this.gameRoundLimit < 1) this.gameRoundLimit = 1;
+    },
     updateTeamsCount(countShift) {
       this.teamsCount.val += countShift;
       if (this.teamsCount.val > this.teamsCount.max) this.teamsCount.val = this.teamsCount.max;
@@ -322,8 +331,7 @@ export default {
       if (this.maxPlayersInGame.val < this.maxPlayersInGame.min) this.maxPlayersInGame.val = this.maxPlayersInGame.min;
     },
     async addGame() {
-      const { deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame } = this;
-
+      const { deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame, gameRoundLimit } = this;
       if (!deckType || !gameType || !gameConfig) prettyAlert({ message: 'game config not set' });
 
       await api.action
@@ -332,7 +340,7 @@ export default {
           args: [
             {
               lobbyGameConfigs: {
-                active: { deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame },
+                active: { deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame, gameRoundLimit },
               },
             },
           ],
@@ -344,7 +352,7 @@ export default {
 
       window.iframeEvents.push({
         data: {
-          args: [{ deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame }],
+          args: [{ deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame, gameRoundLimit }],
         },
         event: ({ args }) => {
           const $iframe = document.querySelector('#gameIframe');
@@ -375,7 +383,9 @@ export default {
     },
   },
   async created() { },
-  async mounted() { },
+  async mounted() {
+    this.prepareGameConfigs();
+  },
   async beforeDestroy() { },
 };
 </script>
