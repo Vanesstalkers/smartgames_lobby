@@ -9,14 +9,17 @@
     <div v-if="!state.currentUser" class="auth">
       <div class="form">
         <h3>Вход в лобби</h3>
-        <div class="inputs">
-          <input v-model="auth.login" name="login" placeholder="login" />
-          <span :style="{ width: '10px' }"></span>
-          <input v-model="auth.password" name="password" placeholder="password" />
-        </div>
-        <button v-on:click="login">Войти с паролем</button>
+        <button class="new" v-on:click="createDemoUser">Войти как гость</button>
+        <button v-if="!showLoginForm" class="link" v-on:click="showLoginForm = true">Войти с паролем</button>
+        <template v-else>
+          <div class="inputs">
+            <input v-model="auth.login" name="login" placeholder="логин" />
+            <span :style="{ width: '10px' }"></span>
+            <input v-model="auth.password" name="password" placeholder="пароль" />
+          </div>
+          <button v-on:click="login">Авторизоваться</button>
+        </template>
         <div v-if="auth.err" class="err">{{ auth.err }}</div>
-        <button class="new" v-on:click="createDemoUser">Создать нового пользователя</button>
       </div>
     </div>
 
@@ -147,6 +150,7 @@ export default {
       pinnedItemsLoaded: false,
       pinned: { chat: false, list: false, top: false, game: false, info: false },
       iframeScr: '',
+      showLoginForm: false,
     };
   },
   watch: {
@@ -930,57 +934,73 @@ $textshadow: rgb(42, 22, 23);
   background-image: url(@/assets/clear-black-back.png);
   background-size: cover;
   display: grid;
-}
 
-#lobby>.auth>.form {
-  align-self: center;
-  justify-self: center;
-  width: 400px;
-  height: 200px;
-  border: 4px solid #f4e205;
-  display: flex;
-  flex-wrap: wrap;
-  color: #f4e205;
-  max-width: 90%;
-  position: fixed;
-}
+  >.form {
+    align-self: center;
+    justify-self: center;
+    width: 400px;
+    height: auto;
+    border: 4px solid #f4e205;
+    display: flex;
+    flex-wrap: wrap;
+    color: #f4e205;
+    max-width: 90%;
+    position: fixed;
 
-#lobby>.auth>.form>* {
-  width: 100%;
-}
+    >.err {
+      width: 100%;
+      color: orangered;
+      margin-bottom: 10px;
+    }
 
-#lobby>.auth>.form>.inputs {
-  display: flex;
-  margin: 10px;
-}
+    >h3 {
+      width: 100%;
+      text-align: center;
+    }
 
-#lobby>.auth>.form>.inputs>input {
-  width: 50%;
-  font-size: 14px;
-  padding: 2px 8px;
-  background: transparent;
-  border: 2px solid #f4e205;
-  color: #f4e205;
-}
+    >.inputs {
+      width: 100%;
+      display: flex;
+      margin: 10px;
 
-#lobby>.auth>.form>button {
-  margin: 10px;
-  background: transparent;
-  color: #f4e205;
-  border: 2px solid #f4e205;
-  cursor: pointer;
-}
+      >input {
+        width: 50%;
+        font-size: 14px;
+        padding: 2px 8px;
+        background: transparent;
+        border: 2px solid #f4e205;
+        color: #f4e205;
+      }
+    }
 
-#lobby>.auth>.form>button:hover {
-  opacity: 0.7;
-}
+    >button {
+      width: 100%;
+      margin: 10px;
+      background: transparent;
+      color: #f4e205;
+      border: 2px solid #f4e205;
+      cursor: pointer;
 
-#lobby>.auth>.form>button.new {
-  background-color: #f4e205;
-  color: black;
-}
+      &:hover {
+        opacity: 0.7;
+      }
 
-#lobby>.auth>.form>.err {
-  color: orangered;
+      &.new {
+        background-color: #f4e205;
+        color: black;
+      }
+
+      &.link {
+        background: transparent;
+        border: none;
+        text-decoration: underline;
+        font-size: 16px;
+        padding: 0;
+        margin: 5px 0;
+        font-size: 12px;
+        padding-bottom: 10px;
+      }
+    }
+  }
 }
 </style>
