@@ -39,33 +39,44 @@
       </div>
 
       <div v-if="gameConfig" class="game-start-block">
-        <div v-if="teamsCount.val" class="player-count-config">
-          <div>
-            <span class="controls">
-              <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
-              {{ gameTimer }}
-              <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameTimer(-15)" />
-            </span>
-            <span class="label"> секунд на ход</span>
+        <div v-if="teamsCount.val">
+          <div class="flex-block">
+            <div>
+              <span class="controls">
+                <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
+                {{ gameTimer }}
+                <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameTimer(-15)" />
+              </span>
+              <span class="label"> секунд на ход</span>
+            </div>
+            <div>
+              <span class="controls">
+                <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameRoundLimit(1)" />
+                {{ gameRoundLimit }}
+                <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameRoundLimit(-1)" />
+              </span>
+              <span class="label"> лимит раундов на игру</span>
+            </div>
           </div>
-          <div>
+          <div class="flex-block">
             <span class="controls">
-              <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameRoundLimit(1)" />
-              {{ gameRoundLimit }}
-              <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameRoundLimit(-1)" />
+              <font-awesome-icon :icon="['fas', 'plus']" @click="updateTeamsCount(1)" />
+              {{ teamsCount.val }}
+              <font-awesome-icon :icon="['fas', 'minus']" @click="updateTeamsCount(-1)" />
             </span>
-            <span class="label"> лимит раундов на игру</span>
+            <span class="label"> всего команд</span>
+            <button class="select-btn active" @click="addGame()">Начать игру</button>
           </div>
         </div>
-        <div>
+        <div v-else class="flex-block">
           <span class="controls">
-            <font-awesome-icon :icon="['fas', 'plus']" @click="updateTeamsCount(1)" />
-            {{ teamsCount.val }}
-            <font-awesome-icon :icon="['fas', 'minus']" @click="updateTeamsCount(-1)" />
+            <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
+            {{ gameTimer }}
+            <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameTimer(-15)" />
           </span>
-          <span class="label"> всего команд</span>
+          <span class="label"> секунд на ход</span>
+          <button class="select-btn active" @click="addGame()">Начать игру</button>
         </div>
-        <button class="select-btn active" @click="addGame()">Начать игру</button>
       </div>
     </div>
     <hr />
@@ -516,10 +527,11 @@ export default {
         margin: 0px 10px 0px 4px;
       }
 
-      .player-count-config {
+      .flex-block {
         width: 100%;
         display: flex;
         justify-content: center;
+        align-items: center;
       }
     }
 
@@ -614,10 +626,10 @@ export default {
       border: none;
       background-repeat: no-repeat;
       background-position: center;
-      background-image: url(@/assets/arrow_down.png);
+      background-image: url(@/assets/arrow_up.png);
 
       &.open {
-        background-image: url(@/assets/arrow_up.png);
+        background-image: url(@/assets/arrow_down.png);
       }
 
       &:hover {
