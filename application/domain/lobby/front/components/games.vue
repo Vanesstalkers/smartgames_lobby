@@ -626,10 +626,10 @@ export default {
       border: none;
       background-repeat: no-repeat;
       background-position: center;
-      background-image: url(@/assets/arrow_up.png);
+      background-image: url(@/assets/list.png);
 
       &.open {
-        background-image: url(@/assets/arrow_down.png);
+        background-image: url(@/assets/arrow_up.png);
       }
 
       &:hover {
