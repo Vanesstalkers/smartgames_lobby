@@ -5,21 +5,19 @@
       <div class="close" v-on:click.stop="closeProfile" />
     </H1>
 
-    <!-- !!! конфиги внешнего вида карт и поля -->
-
     <div class="content">
       <div class="input-form">
         <div class="input-group" :style="{ flexWrap: 'wrap' }">
           <label>Логин</label>
-          <input v-model="userLogin" :disabled="disableLoginInput" />
+          <input v-model="userLogin" :disabled="disableLoginInput" @keydown.enter="save" />
           <small v-if="!disablePasswordInput" :style="{ display: 'flex' }">
             <div>
               <label>Пароль</label>
-              <input type="password" v-model="userPassword" />
+              <input type="password" v-model="userPassword" @keydown.enter="save" />
             </div>
             <div>
               <label>Подтвержение</label>
-              <input type="password" v-model="userPasswordConfirm" />
+              <input type="password" v-model="userPasswordConfirm" @keydown.enter="save" />
             </div>
           </small>
           <small>
@@ -30,12 +28,12 @@
         <br />
         <div class="input-group">
           <label>Имя</label>
-          <input v-model="userName" />
+          <input v-model="userName" @keydown.enter="save" />
         </div>
         <br />
         <div class="input-group">
           <label>Имя в телеграм</label>
-          <input v-model="tgUsername" />
+          <input v-model="tgUsername" @keydown.enter="save" />
         </div>
         <br />
         <div class="input-group">
