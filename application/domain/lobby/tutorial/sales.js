@@ -53,10 +53,11 @@
     },
     contacts: {
       superPos: true,
-    html: `Можете связаться с руководителем студии Иваном Мироновым. 
-    Электронная почта: <a href="mailto:ivan@smartgames.studio">ivan@smartgames.studio</a>
-    Контактный телефон: <a href="tel:+79266323666" target="_blank">8-926-632-3666</a>
-    (доступен во всех популярных мессенджерах)`,
+      html: () => `Можете связаться с руководителем студии Иваном Мироновым. 
+        Электронная почта: <a href="mailto:ivan@smartgames.studio">ivan@smartgames.studio</a>
+        Контактный телефон: <a href="tel:+79266323666" target="_blank">8-926-632-3666</a>
+        (доступен во всех популярных мессенджерах)
+      `,
       buttons: [
         { text: 'Написать сейчас', link: 'mailto:ivan@smartgames.studio' },
         { text: 'Позвонить сейчас', link: 'tel:89266323666' },

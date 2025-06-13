@@ -96,7 +96,7 @@
           const replaceText = 'левом нижнем';
           step.text = step.text.replace('[[menu-position]]', replaceText);
         },
-        profile: (self) => {
+        profile: (data, self) => {
           self.showProfile();
         },
       },
