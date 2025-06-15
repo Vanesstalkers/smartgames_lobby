@@ -839,6 +839,7 @@ $textshadow: rgb(42, 22, 23);
 
 .menu-item.info ul,
 .menu-item.list ul {
+  padding-top: 4px;
   font-size: 18px;
   color: white;
   text-align: left;
@@ -846,7 +847,7 @@ $textshadow: rgb(42, 22, 23);
 
 .menu-item.info ul>li,
 .menu-item.list ul>li {
-  padding-bottom: 20px;
+  padding-bottom: 10px;
 }
 
 .menu-item.info ul>li>label,

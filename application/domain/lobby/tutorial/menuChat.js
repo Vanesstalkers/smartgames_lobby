@@ -2,12 +2,11 @@
   steps: {
     hello: {
       initialStep: true,
-      text: `Для каждой игровой колоды свой список рейтингов (в данный момент доступна только игра "Релиз").`,
+      text: `В чате игроки находят себе соперников по игре и просто общаются между собой.`,
       actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          const $item = $rootEl.querySelector('.menu-item.chat.pinned');
-          if (!$item) $rootEl.querySelector('.menu-item.chat > label')?.click();
+        before: ({ $root }) => {
+          const $item = $root.querySelector('.menu-item.chat.pinned');
+          if (!$item) $root.querySelector('.menu-item.chat > label')?.click();
         },
       },
       buttons: [
@@ -19,8 +18,8 @@
       text: 'Для того, чтобы писать в чате, необходимо указать свое имя.',
       active: '.menu-item.chat .chat-controls-alert',
       actions: {
-        before: (self) => {
-          const $inputNameForm = self.$root.$el.querySelector('.menu-item.chat .chat-controls-alert');
+        before: ({ $root }) => {
+          const $inputNameForm = $root.querySelector('.menu-item.chat .chat-controls-alert');
           const skipStep = $inputNameForm ? false : true;
           return { skipStep };
         },

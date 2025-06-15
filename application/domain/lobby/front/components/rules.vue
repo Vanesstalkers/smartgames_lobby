@@ -1,6 +1,6 @@
 <template>
   <perfect-scrollbar>
-    <div>
+    <div class="rules">
       <ul v-if="lobby.gameServers">
         <li class="disabled">
           <label class="not-disabled">Игра "Релиз"</label>
@@ -13,7 +13,7 @@
                 </a>
               </label>
               <hr />
-              <span v-on:click="showGallery('release')">Список карт</span>
+              <span class="gallery" v-on:click="showGallery('release')">Список карт</span>
             </li>
           </ul>
         </li>
@@ -28,11 +28,14 @@
                 </a>
               </label>
               <hr />
-              <span v-on:click="showGallery('auto', 'car')">Карты авто</span><br />
-              <span v-on:click="showGallery('auto', 'service')">Карты сервисов</span><br />
-              <span v-on:click="showGallery('auto', 'client')">Карты клиентов</span><br />
-              <span v-on:click="showGallery('auto', 'feature')">Карты особенностей</span><br />
-              <span v-on:click="showGallery('auto', 'credit')">Карты кредитов</span><br />
+              <span v-for="(item, index) in [
+                { type: 'car', text: 'Карты авто' },
+                { type: 'service', text: 'Карты сервисов' },
+                { type: 'client', text: 'Карты клиентов' },
+                { type: 'feature', text: 'Карты особенностей' },
+                { type: 'credit', text: 'Карты кредитов' }
+              ]" :key="index" class="gallery" v-on:click="showGallery('auto', item.type)">{{ item.text
+              }}</span><br />
             </li>
             <li>
               <label>
@@ -58,7 +61,7 @@
           </ul>
         </li>
         <li class="disabled">
-          <label>Скорринг</label>
+          <label>Банкинг</label>
           <div>Колода для игр про работу в банках</div>
           <ul>
             <li>
@@ -67,13 +70,16 @@
                   Правила игры
                 </a>
               </label>
-              
+
               <hr />
-              <span v-on:click="showGallery('bank', 'product')">Карты продуктов</span><br />
-              <span v-on:click="showGallery('bank', 'service')">Карты сервисов</span><br />
-              <span v-on:click="showGallery('bank', 'scoring')">Карты скоринга</span><br />
-              <span v-on:click="showGallery('bank', 'client')">Карты клиентов</span><br />
-              <span v-on:click="showGallery('bank', 'feature')">Карты особенностей</span><br />
+              <span v-for="(item, index) in [
+                { type: 'product', text: 'Карты продуктов' },
+                { type: 'service', text: 'Карты сервисов' },
+                { type: 'scoring', text: 'Карты скоринга' },
+                { type: 'client', text: 'Карты клиентов' },
+                { type: 'feature', text: 'Карты особенностей' }
+              ]" :key="index" class="gallery" v-on:click="showGallery('bank', item.type)">{{ item.text
+              }}</span><br />
             </li>
             <li>
               <label>
@@ -173,10 +179,67 @@ export default {
       );
     },
   },
-  async created() {},
-  async mounted() {},
-  async beforeDestroy() {},
+  async created() { },
+  async mounted() { },
+  async beforeDestroy() { },
 };
 </script>
 <style src="vue2-perfect-scrollbar/dist/vue2-perfect-scrollbar.css" />
-<style lang="scss"></style>
+<style scoped lang="scss">
+.rules {
+  label {
+    >a:after {
+      position: absolute;
+      content: "";
+      width: 16px;
+      height: 16px;
+      background-color: white;
+      mask-image: url(@/assets/download.png);
+      mask-size: 16px;
+      -webkit-mask-image: url(@/assets/download.png);
+      -webkit-mask-size: 16px;
+      background-size: 16px;
+      margin-left: 6px;
+      background-repeat: no-repeat;
+      margin-top: 8px;
+
+      visibility: hidden;
+    }
+
+    &:hover {
+      a::after {
+        visibility: visible;
+      }
+    }
+  }
+
+  .gallery {
+    display: block;
+
+    &:after {
+      position: absolute;
+      content: "";
+      width: 16px;
+      height: 16px;
+      background-color: white;
+      mask-image: url(@/assets/gallery.png);
+      mask-size: 16px;
+      -webkit-mask-image: url(@/assets/gallery.png);
+      -webkit-mask-size: 16px;
+      background-size: 16px;
+      margin-left: 4px;
+      background-repeat: no-repeat;
+      margin-top: 4px;
+
+      visibility: hidden;
+    }
+
+    &:hover {
+      &:after {
+        visibility: visible;
+      }
+    }
+  }
+
+}
+</style>

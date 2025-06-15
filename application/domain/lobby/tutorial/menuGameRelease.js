@@ -2,15 +2,11 @@
   steps: {
     hello: {
       initialStep: true,
-      text: `Это игровые колоды, для каждой из которых доступно несколько вариантов игр. Для получения подробностей рекомендую пройти обучение по каждой из колод.`,
-      active: { selector: '.select-btn.wait-for-select:not(.disabled)', css: { boxShadow: '0px 0px 10px 4px #f4e205' } },
+      text: `Для начала нужно выбрать колоду бизнес-карт, которой ты будешь играть (прямо сейчас доступна только колода "Релиз").`,
+      active: '.select-btn.wait-for-select:not(.disabled)',
       actions: {
         before: ({ $root }) => {
-          const $item = $root.querySelector('.menu-item.game.pinned');
-          if (!$item) $root.querySelector('.menu-item.game > label')?.click();
 
-          const $btn = $root.querySelector('.menu-item-content.games .select-btn.active');
-          if ($btn) $btn.click(); // скрываем открытые конфиги
         },
       },
       buttons: [
@@ -19,38 +15,27 @@
       ],
     },
     type: {
-      text: 'В нижней части блока представлен список идущих сейчас и ожидающих начала игр.',
-      active: [
-        { selector: '.game-list-container .tutorial-games', css: { boxShadow: 'none' } },
-        { selector: '.game-list-container .no-games-label', css: { display: 'none' } },
-        { selector: '.game-list-container', css: { boxShadow: 'inset 0 0 20px 10px #f4e205' } },
-      ],
-      buttons: [{ text: 'Продолжай', step: 'settings' }, { text: 'exit', action: 'exit' }],
-    },
-    settings: {
-      initialStep: true,
-      text: 'Для каждой игры указан ее тип и основные настройки (например, время на ход).',
-      active: [
-        { selector: '.game-list-container .tutorial-games', css: { boxShadow: 'none' } },
-        { selector: '.game-list-container .no-games-label', css: { display: 'none' } },
-        { selector: '.game-list-container .game-config-info', css: { boxShadow: '0 0 10px 4px #f4e205' } },
-      ],
-      buttons: [{ text: 'Дальше', step: 'teams' }, { text: 'exit', action: 'exit' }],
-    },
-    teams: {
-      initialStep: true,
-      text: 'asdasd.',
-      active: [
-        { selector: '.game-list-container .tutorial-games', css: { boxShadow: 'none' } },
-        { selector: '.game-list-container .no-games-label', css: { display: 'none' } },
-        { selector: '.game-list-container .show-teams', css: { boxShadow: '0 0 10px 4px #f4e205' } },
-      ],
+      text: 'Далее нужно выбрать тип игры. Предлагается несколько вариантов на выбор для одного, двух и трех человек. Важно уточнить, что ИИ еще не настроен, так что поиграть одному в режим для нескольких человек пока что не удастся.',
+      // text: 'Далее нужно выбрать тип игры. Предлагается три варианта на выбор: \r\n "Фриланс" - игра для одного \r\n "Дуэль" - игра 1-на-1 против другого игрока* \r\n "Каждый за себя" - игра для троих человек* \r\n * игра против ИИ еще не поддерживается, так что если вам не с кем играть, то выбирайте режим "Фриланс".',
+      active: '.select-btn.wait-for-select:not(.disabled)',
       actions: {
         before: ({ $root }) => {
-          const $showTeamsBtn = $root.querySelector('.game-list-container .show-teams');
-          if (!$showTeamsBtn.classList.contains('open')) $showTeamsBtn.click();
+          const $block = $root.querySelector('.menu-item.game.pinned');
+          if (!$block) $root.querySelector('.menu-item.game > label')?.click();
+          const $item = $root.querySelector('.game-block');
+          if (!$item) $root.querySelector('.select-btn.game-release.wait-for-select:not(.disabled)')?.click();
         },
       },
+      buttons: [{ text: 'Продолжай', step: 'single' }, { text: 'exit', action: 'exit' }],
+    },
+    single: {
+      text: '"Фриланс" - игра для одного человека, по своему формату напоминающая раскладывание пасьянса. Цель игры - завершить заполнение поля раньше, чем количество пустых зон на поле превысит количество костяшек в колоде. Новые зоны на поле будут появляться каждый раз, когда колода карт-событий окажется пустой.',
+      active: '.select-btn.wait-for-select.single',
+      buttons: [{ text: 'Дальше', step: 'duel' }, { text: 'exit', action: 'exit' }],
+    },
+    duel: {
+      text: '"Дуэль" - игра для двоих игроков, которые соревнуются между собой. Цель игры - заполнить все зоны поля, при этом победителем считается тот, кто положил последнюю недостающую костяшку.',
+      active: '.select-btn.wait-for-select.duel',
       buttons: [{ text: 'Дальше', step: 'ffa' }, { text: 'exit', action: 'exit' }],
     },
     ffa: {

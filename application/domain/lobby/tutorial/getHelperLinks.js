@@ -17,4 +17,10 @@
     simple: false,
     type: 'lobby',
   },
+  menuGameRelease: {
+    selector: '.menu-item-content.games .select-btn.game-release',
+    tutorial: 'lobby-tutorial-menuGameRelease',
+    simple: false,
+    type: 'lobby',
+  },
 });

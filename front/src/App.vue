@@ -160,6 +160,14 @@ body {
   margin: auto;
   cursor: pointer;
   opacity: 1;
+
+  svg {
+    padding-right: 4px;
+  }
+
+  :hover {
+    opacity: 0.7;
+  }
 }
 
 #app.mobile-view .fullscreen-btn {
@@ -168,14 +176,6 @@ body {
 
 #app[current-route='Lobby'] .fullscreen-btn {
   left: 10px;
-}
-
-.fullscreen-btn svg {
-  padding-right: 4px;
-}
-
-.fullscreen-btn:hover {
-  opacity: 0.7;
 }
 
 .show-with-delay {
