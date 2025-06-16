@@ -2,12 +2,11 @@
   steps: {
     hello: {
       initialStep: true,
-      text: `Для каждой игровой колоды свой список рейтингов (в данный момент доступна только игра "Релиз").`,
+      text: `В чате игроки <a>находят соперников по игре</a> и просто общаются между собой.`,
       actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          const $item = $rootEl.querySelector('.menu-item.chat.pinned');
-          if (!$item) $rootEl.querySelector('.menu-item.chat > label')?.click();
+        before: ({ $root }) => {
+          const $item = $root.querySelector('.menu-item.chat.pinned');
+          if (!$item) $root.querySelector('.menu-item.chat > label')?.click();
         },
       },
       buttons: [
@@ -16,11 +15,11 @@
       ],
     },
     username: {
-      text: 'Для того, чтобы писать в чате, необходимо указать свое имя.',
+      text: 'Для того, чтобы писать в чате, <a>необходимо указать свое имя</a>.',
       active: '.menu-item.chat .chat-controls-alert',
       actions: {
-        before: (self) => {
-          const $inputNameForm = self.$root.$el.querySelector('.menu-item.chat .chat-controls-alert');
+        before: ({ $root }) => {
+          const $inputNameForm = $root.querySelector('.menu-item.chat .chat-controls-alert');
           const skipStep = $inputNameForm ? false : true;
           return { skipStep };
         },
@@ -32,12 +31,12 @@
       buttons: [{ text: 'Продолжай', step: 'channels' }],
     },
     channels: {
-      text: 'В разделе "Игроки онлайн" отображается список всех пользователей, находящихся в настоящий момент на портале. Чтобы написать личное сообщение пользователю, то нужно нажать на его имя в этом блоке.',
+      text: 'Это список всех пользователей, находящихся в настоящий момент на портале. <a>Чтобы написать личное сообщение пользователю, то нужно нажать на его имя в этом блоке.</a>',
       active: '.menu-item.chat .chat-header',
       buttons: [{ text: 'Дальше', step: 'exit' }],
     },
     exit: {
-      text: 'Получить доступ ко всем ранее открытым чатами можно с помощью отдельного переключателя.',
+      text: 'Это список всех доступных чатов (в том числе ранее открытых личных чатов).',
       active: '.menu-item.chat .chat-channels',
       buttons: [{ text: 'Спасибо', action: 'exit' }],
     },
