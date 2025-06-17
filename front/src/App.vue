@@ -160,6 +160,19 @@ body {
   margin: auto;
   cursor: pointer;
   opacity: 1;
+
+  svg {
+    padding-right: 4px;
+  }
+
+  :hover {
+    opacity: 0.7;
+  }
+
+  &.tutorial-active {
+    box-shadow: 0 0 10px 10px #f4e205;
+    z-index: 100000 !important;
+  }
 }
 
 #app.mobile-view .fullscreen-btn {
@@ -168,14 +181,6 @@ body {
 
 #app[current-route='Lobby'] .fullscreen-btn {
   left: 10px;
-}
-
-.fullscreen-btn svg {
-  padding-right: 4px;
-}
-
-.fullscreen-btn:hover {
-  opacity: 0.7;
 }
 
 .show-with-delay {

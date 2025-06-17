@@ -65,8 +65,8 @@
         <perfect-scrollbar class="menu-item-content">
           <ul>
             <li>
-              <label v-on:click.stop="showInfo('teambuilding')">Проведение тимбилдингов</label>
-              <div>С неограниченным количеством участников</div>
+              <label v-on:click.stop="showInfo('teambuilding')">Корпоративные тимбилдинги</label>
+              <div>В том числе в онлайн формате</div>
             </li>
             <li>
               <label v-on:click.stop="showInfo('delivery')">Продажа настольных игр</label>
@@ -839,6 +839,7 @@ $textshadow: rgb(42, 22, 23);
 
 .menu-item.info ul,
 .menu-item.list ul {
+  padding-top: 4px;
   font-size: 18px;
   color: white;
   text-align: left;
@@ -846,7 +847,7 @@ $textshadow: rgb(42, 22, 23);
 
 .menu-item.info ul>li,
 .menu-item.list ul>li {
-  padding-bottom: 20px;
+  padding-bottom: 10px;
 }
 
 .menu-item.info ul>li>label,

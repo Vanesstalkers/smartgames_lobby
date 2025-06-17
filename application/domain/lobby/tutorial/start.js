@@ -1,9 +1,9 @@
 ({
   steps: {
     hello: {
-      initialStep: true,
+      // initialStep: true,
       superPos: true,
-      text: `Приветствую на портале обучающих настольных бизнес-игр.\r\nЯ могу провести для вас короткую экскурсию.`,
+      text: `Приветствую на портале обучающих настольных бизнес-игр.\r\n<a>Я могу провести короткую экскурсию</a>.`,
       buttons: [
         { text: 'Продолжай', step: 'fullscreen' },
         { text: 'Я разберусь', step: 'exit', exit: true },
@@ -11,15 +11,7 @@
     },
     fullscreen: {
       superPos: true,
-      actions: {
-        before: (self) => {
-          const { isMobile } = self.state;
-          let skipStep = true;
-          if (isMobile) skipStep = false;
-          return { skipStep };
-        },
-      },
-      text: 'В левом верхнем углу кнопка, которая включает режим полного экрана. Повторное нажатие на нее отключит этот режим.',
+      text: 'В левом верхнем углу кнопка, которая включает <a>режим полного экрана</a>. Повторное нажатие на нее отключит этот режим.',
       active: '.fullscreen-btn',
       buttons: [{ text: 'Продолжай', step: 'games' }],
     },
@@ -28,12 +20,11 @@
         desktop: 'bottom-left',
         mobile: 'bottom-right',
       },
-      text: 'В разделе "Правила игр" список всех игр на сайте. Можно скачать правила в pdf-формате, а также посмотреть все карты каждой колоды.',
+      text: 'В разделе ПРАВИЛА ИГР <a>список всех игр на портале</a>. Можно скачать <a>правила</a> в pdf-формате, а также посмотреть <a>все карты каждой колоды</a>.',
       actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          let $item = $rootEl.querySelector('.menu-item.list.pinned');
-          if (!$item) $rootEl.querySelector('.menu-item.list > label')?.click();
+        before: ({ $root }) => {
+          let $item = $root.querySelector('.menu-item.list.pinned');
+          if (!$item) $root.querySelector('.menu-item.list > label')?.click();
         },
       },
       buttons: [{ text: 'Дальше', step: 'rates' }],
@@ -43,14 +34,13 @@
         desktop: 'bottom-left',
         mobile: 'bottom-right',
       },
-      text: 'В разделе "Зал славы" рейтинги достижений всех игроков. Вы также найдете там и статистику по своим играм.',
+      text: 'В разделе ЗАЛ СЛАВЫ <a>рейтинги достижений всех игроков</a>. Там же ты найдешь и статистику по своим играм.',
       actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          let $item = $rootEl.querySelector('.menu-item.list.pinned');
-          if ($item) $rootEl.querySelector('.menu-item.list > label')?.click();
-          $item = $rootEl.querySelector('.menu-item.top.pinned');
-          if (!$item) $rootEl.querySelector('.menu-item.top > label')?.click();
+        before: ({ $root }) => {
+          let $item = $root.querySelector('.menu-item.list.pinned');
+          if ($item) $root.querySelector('.menu-item.list > label')?.click();
+          $item = $root.querySelector('.menu-item.top.pinned');
+          if (!$item) $root.querySelector('.menu-item.top > label')?.click();
         },
       },
       buttons: [{ text: 'Дальше', step: 'chat' }],
@@ -60,14 +50,13 @@
         desktop: 'bottom-right',
         mobile: 'bottom-right',
       },
-      text: 'В чате можно общаться с игроками, которые сейчас на портале. В том числе можно написать кому-то личное сообщение.',
+      text: 'ЧАТ ПОРТАЛА предназначен для общения игроков между собой и <a>поиска соперника</a>. В том числе есть возможность написать личное сообщение.',
       actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          let $item = $rootEl.querySelector('.menu-item.top.pinned');
-          if ($item) $rootEl.querySelector('.menu-item.top > label')?.click();
-          $item = $rootEl.querySelector('.menu-item.chat.pinned');
-          if (!$item) $rootEl.querySelector('.menu-item.chat > label')?.click();
+        before: ({ $root }) => {
+          let $item = $root.querySelector('.menu-item.top.pinned');
+          if ($item) $root.querySelector('.menu-item.top > label')?.click();
+          $item = $root.querySelector('.menu-item.chat.pinned');
+          if (!$item) $root.querySelector('.menu-item.chat > label')?.click();
         },
       },
       buttons: [{ text: 'Дальше', step: 'playground' }],
@@ -77,20 +66,21 @@
         desktop: 'bottom-right',
         mobile: 'bottom-right',
       },
-      text: '"Игровая комната" предназначена для поиска подходящей игры, если вы желаете присоединиться к кому либо, либо начать новую партию.',
+      text: 'В разделе ИГРОВАЯ КОМНАТА, ты можешь <a>начать новую партию в одиночном режиме или с соперниками</a>. Также присутствует режим наблюдателя, позволяющий наблюдать за чужими играми.',
       actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          let $item = $rootEl.querySelector('.menu-item.chat.pinned');
-          if ($item) $rootEl.querySelector('.menu-item.chat > label')?.click();
-          $item = $rootEl.querySelector('.menu-item.game.pinned');
-          if (!$item) $rootEl.querySelector('.menu-item.game > label')?.click();
+        before: ({ $root }) => {
+          let $item = $root.querySelector('.menu-item.chat.pinned');
+          if ($item) $root.querySelector('.menu-item.chat > label')?.click();
+          $item = $root.querySelector('.menu-item.game.pinned');
+          if (!$item) $root.querySelector('.menu-item.game > label')?.click();
         },
       },
       buttons: [{ text: 'Дальше', step: 'exit' }],
     },
     exit: {
-      superPos: true,
+      initialStep: true,
+      superPos: { showMenu: true },
+      active: { selector: '.helper-guru', position: 'fixed' },
       actions: {
         _prepare: (step, { isMobile }) => {
           const replaceText = 'левом нижнем';
@@ -100,7 +90,8 @@
           self.showProfile();
         },
       },
-      text: 'В [[menu-position]] углу будет расположена моя иконка, которая открывает меню. Через него можно в любой момент получить доступ к своему профилю или повторно запустить обучение.\r\nРекомендую сразу заполнить профиль, установив свой личный логин, пароль и выбрав аватар для игры.',
+      // text: '<div class="text-left"><a>Иконка в [[menu-position]] углу открывает МЕНЮ ИГРОКА</a>. Оно позволяет:\r\n- получить доступ к своему профилю;\r\n- повторно запустить любое обучение.\r\n\r\n<center>Рекомендую сразу заполнить профиль, установив свой личный логин, пароль и выбрав аватар для игры.</center></div>',
+      text: 'В [[menu-position]] углу иконка МЕНЮ ИГРОКА. В нем можно:\r\n- <a>получить доступ к своему профилю</a>\r\n- <a>повторно запустить любое обучение</a>\r\n\r\n<center>Рекомендую сразу заполнить профиль, установив свой личный логин, пароль и выбрав аватар для игры.</center>',
       buttons: [
         { text: 'Перейти в профиль', icon: ['fas', 'user'], action: 'profile' },
         { text: 'Понятно', action: 'exit' },
