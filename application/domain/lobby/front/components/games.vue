@@ -17,7 +17,7 @@
       </div>
       <div v-if="!deckType" class="game-types">
         <div v-for="[code, game] in gameDeckList" :key="code"
-          :class="['select-btn', 'wait-for-select', game.active === false ? 'disabled' : '']"
+          :class="['select-btn', `game-${code}`, 'wait-for-select', game.active === false ? 'disabled' : '']"
           @click="selectDeckType(code)">
           <div class="title"><font-awesome-icon :icon="game.icon" /> {{ game.title }}</div>
         </div>
@@ -41,7 +41,7 @@
       <div v-if="gameConfig" class="game-start-block">
         <div v-if="teamsCount.val">
           <div class="flex-block">
-            <div>
+            <div class="timer">
               <span class="controls">
                 <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
                 {{ gameTimer }}
@@ -49,7 +49,7 @@
               </span>
               <span class="label"> секунд на ход</span>
             </div>
-            <div>
+            <div class="rounds">
               <span class="controls">
                 <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameRoundLimit(1)" />
                 {{ gameRoundLimit }}
@@ -59,22 +59,26 @@
             </div>
           </div>
           <div class="flex-block">
-            <span class="controls">
-              <font-awesome-icon :icon="['fas', 'plus']" @click="updateTeamsCount(1)" />
-              {{ teamsCount.val }}
-              <font-awesome-icon :icon="['fas', 'minus']" @click="updateTeamsCount(-1)" />
-            </span>
-            <span class="label"> всего команд</span>
+            <div class="teams">
+              <span class="controls">
+                <font-awesome-icon :icon="['fas', 'plus']" @click="updateTeamsCount(1)" />
+                {{ teamsCount.val }}
+                <font-awesome-icon :icon="['fas', 'minus']" @click="updateTeamsCount(-1)" />
+              </span>
+              <span class="label"> всего команд</span>
+            </div>
             <button class="select-btn active" @click="addGame()">Начать игру</button>
           </div>
         </div>
         <div v-else class="flex-block">
-          <span class="controls">
-            <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
-            {{ gameTimer }}
-            <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameTimer(-15)" />
-          </span>
-          <span class="label"> секунд на ход</span>
+          <div class="timer">
+            <span class="controls">
+              <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
+              {{ gameTimer }}
+              <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameTimer(-15)" />
+            </span>
+            <span class="label"> секунд на ход</span>
+          </div>
           <button class="select-btn active" @click="addGame()">Начать игру</button>
         </div>
       </div>
@@ -82,59 +86,13 @@
     <hr />
     <div class="game-list-container">
       <perfect-scrollbar class="game-list">
-        <div v-for="game in lobbyGameList" :key="game.id" class="game-item">
-          <div v-if="game.joinedPlayers" :style="{ width: 'calc(100% - 200px)' }">
-            <div class="game-config-info">
-              <span>
-                <font-awesome-icon :icon="deckMap[game.deckType].icon" :style="{ marginRight: '2px' }" />
-                <font-awesome-icon :icon="deckMap[game.deckType].games[game.gameType].icon" />
-                {{ deckMap[game.deckType].games[game.gameType].items[game.gameConfig].title }}
-              </span>
-              <span style="margin-left: 10px">
-                <font-awesome-icon :icon="['fas', 'stopwatch']" /> {{ game.gameTimer / 1000 }} сек
-              </span>
-            </div>
-            <div :style="{ display: 'flex', alignItems: 'center' }">
-              <button :class="['show-teams', showTeamsOpen ? 'open' : '']" v-on:click="showTeam(game.id)" />
-              <span v-if="game.waitForPlayer && game.teams" :style="{ marginRight: '8px' }" class="teams-btn">Команд: {{
-                game.teams.length }}</span>
-              <span v-if="game.waitForPlayer && game.joinedPlayers">Игроков: {{ game.joinedPlayers }}</span>
-              <span v-if="!game.waitForPlayer || game.round"> Идет {{ game.round }} раунд </span>
-            </div>
-          </div>
-          <div :style="{ flexShrink: 0, alignSelf: 'flex-start' }">
-            <button v-if="game.waitForPlayer || game.teams?.length > 0" class="lobby-btn join-btn"
-              v-on:click="joinGame({ gameId: game.id, deckType: game.deckType })">
-              Присоединиться
-            </button>
-            <span v-if="game.joinedPlayers && (!game.waitForPlayer || game.round)" :style="{
-              color: '#f4e205',
-              display: 'block',
-              margin: '4px'
-            }">
-              <button class="lobby-btn join-btn viewer"
-                v-on:click="joinGame({ gameId: game.id, deckType: game.deckType, viewerMode: true })">
-                <font-awesome-icon :icon="['fas', 'eye']" />
-                Посмотреть
-              </button>
-            </span>
-          </div>
-          <div v-if="showTeams[game.id]" :style="{ width: '100%', fontSize: '12px' }">
-            <div v-for="team in game.teams" :key="team.id" :style="{ display: 'flex', marginBottom: '6px' }">
-              <button class="lobby-btn join-btn small-btn" :style="{
-                border: 'none',
-                marginRight: '8px',
-                marginLeft: '24px',
-                marginTop: '4px',
-                marginBottom: '2px',
-                padding: '2px 6px',
-                height: '20px',
-              }" v-on:click="joinGame({ gameId: game.id, deckType: game.deckType, teamId: team.id })">
-                Присоединиться
-              </button>
-              <span :style="{ paddingTop: '6px' }">{{ team.title }}</span>
-            </div>
-          </div>
+        <div v-if="lobbyGameList.length === 0" class="no-games-label"> В данной момент нет активных игр</div>
+
+        <tutorial-games class="tutorial-games" :show-teams="showTeams" @show-team="showTeam" />
+
+        <div v-for="game in lobbyGameList" :key="game.id">
+          <game-item :game="game" :deck-map="deckMap" :show-teams="showTeams[game.id]" @show-team="showTeam(game.id)"
+            @join="joinGame" />
         </div>
       </perfect-scrollbar>
     </div>
@@ -143,12 +101,16 @@
 
 <script>
 import { PerfectScrollbar } from 'vue2-perfect-scrollbar';
-import { Fancybox } from '@fancyapps/ui';
 import '@fancyapps/ui/dist/fancybox/fancybox.css';
+import GameItem from './game-item.vue'
+import TutorialGames from './tutorial-games.vue'
 
 export default {
+  name: 'games',
   components: {
     PerfectScrollbar,
+    GameItem,
+    TutorialGames
   },
   props: {
     showGameIframe: Function,
@@ -165,7 +127,6 @@ export default {
       playerCount: { min: null, max: null, val: null },
       maxPlayersInGame: { min: null, max: null, val: null },
       showTeams: {},
-      showTeamsOpen: false,
     };
   },
   watch: {},
@@ -390,7 +351,6 @@ export default {
     },
     showTeam(gameId) {
       this.$set(this.showTeams, gameId, !this.showTeams[gameId]);
-      this.showTeamsOpen = !this.showTeamsOpen;
     },
   },
   async created() { },
@@ -597,7 +557,7 @@ export default {
       }
 
       &.tutorial-active {
-        box-shadow: 0px 0px 20px 5px #f4e205;
+        box-shadow: 0px 0px 20px 5px white;
       }
     }
   }
@@ -614,76 +574,19 @@ export default {
       height: 100%;
     }
 
-    .show-teams {
-      cursor: pointer;
-      right: 10px;
-      top: 10px;
-      width: 18px;
-      height: 18px;
-      margin-right: 4px;
-      background-size: 14px;
-      background-color: transparent;
-      border: none;
-      background-repeat: no-repeat;
-      background-position: center;
-      background-image: url(@/assets/list.png);
+    .tutorial-games {
+      display: none;
 
-      &.open {
-        background-image: url(@/assets/arrow_up.png);
-      }
-
-      &:hover {
-        opacity: 0.7;
+      &.tutorial-active {
+        display: block;
       }
     }
-  }
 
-  &.big-config {
-    .game-list-container {
-      height: calc(100% - 120px);
+    &.big-config {
+      .game-list-container {
+        height: calc(100% - 120px);
+      }
     }
-  }
-}
-
-.game-item {
-  @include flex($justify: space-between, $wrap: wrap);
-  margin: 4px auto;
-  min-height: 30px;
-  max-width: 400px;
-  text-align: left;
-
-  .game-config-info {
-    color: #f4e205;
-    display: flex;
-    justify-content: space-between;
-
-    >svg {
-      margin-left: 0px 4px;
-    }
-  }
-}
-
-.mobile-view .game-item {
-  justify-content: center;
-
-  >* {
-    margin: 4px 10px;
-  }
-}
-
-@media only screen and (max-width: 360px) {
-  .join-btn {
-    font-size: 9px;
-    padding: 4px;
-  }
-}
-
-.join-btn.viewer {
-  background: transparent;
-  color: #f4e205;
-
-  >svg {
-    color: #f4e205;
   }
 }
 </style>

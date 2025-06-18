@@ -3,6 +3,7 @@
     state.isMobile ? 'mobile-view' : '',
     state.isLandscape ? 'landscape-view' : 'portrait-view',
     !state.currentUser ? 'need-auth' : '',
+    isMobilePinned ? 'mobile-pinned' : '',
   ]">
     <iframe v-if="iframeScr" :src="iframeScr" :id="`gameIframe`" allowfullscreen></iframe>
 
@@ -65,8 +66,8 @@
         <perfect-scrollbar class="menu-item-content">
           <ul>
             <li>
-              <label v-on:click.stop="showInfo('teambuilding')">Проведение тимбилдингов</label>
-              <div>С неограниченным количеством участников</div>
+              <label v-on:click.stop="showInfo('teambuilding')">Корпоративные тимбилдинги</label>
+              <div>В том числе в онлайн формате</div>
             </li>
             <li>
               <label v-on:click.stop="showInfo('delivery')">Продажа настольных игр</label>
@@ -225,10 +226,12 @@ export default {
           {
             text: 'Покажи доступные обучения',
             action: {
-              text: 'Нажмите на нужное обучение в списке, чтобы запустить его повторно:',
+              text: `Выбери нужное обучение в списке, чтобы запустить его повторно:
+              `,
               showList: [
                 { title: 'Стартовое приветствие', action: { tutorial: 'lobby-tutorial-start' } },
                 { title: 'Игровая комната', action: { tutorial: 'lobby-tutorial-menuGame' } },
+                { title: 'Корпоративные игры в тематике ИТ', action: { tutorial: 'lobby-tutorial-menuGameReleaseCorporate' } },
               ],
               buttons: [
                 { text: 'Назад в меню', action: 'init' },
@@ -240,6 +243,9 @@ export default {
         ],
       };
     },
+    isMobilePinned() {
+      return Object.values(this.pinned).find(_ => _) && this.state.isMobile;
+    }
   },
   methods: {
     async initSession(config = {}) {
@@ -496,6 +502,10 @@ export default {
       z-index: 2;
     }
   }
+}
+
+#lobby.mobile-pinned .menu-item-list .menu-item:not(.pinned) {
+  display: none;
 }
 
 #lobby.mobile-view.landscape-view .menu-item-list {
@@ -789,34 +799,45 @@ $textshadow: rgb(42, 22, 23);
   background-size: cover;
   transform-origin: top;
 
+}
+
+.contact-icons-wrapper {
+  position: absolute;
+  top: 115px;
+  right: 30px;
+  display: flex;
+  justify-content: center;
+
+  * {
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    margin: 5px;
+    background-size: cover;
+    box-shadow: 1.5px 1px black;
+    border-radius: 50%;
+
+    &:hover {
+      opacity: 0.7;
+    }
+  }
+
+  .telegram-link {
+    background-image: url(assets/telegram.png);
+  }
+
+  .vk-link {
+    background-image: url(assets/vk.png);
+  }
+}
+
+.helper-dialog {
   .contact-icons-wrapper {
-    position: absolute;
-    top: 115px;
-    right: 30px;
-    display: flex;
-    justify-content: center;
-
-    * {
-      cursor: pointer;
-      width: 30px;
-      height: 30px;
-      margin: 5px;
-      background-size: cover;
-      box-shadow: 1.5px 1px black;
-      border-radius: 50%;
-
-      &:hover {
-        opacity: 0.7;
-      }
-    }
-
-    .telegram-link {
-      background-image: url(assets/telegram.png);
-    }
-
-    .vk-link {
-      background-image: url(assets/vk.png);
-    }
+    width: 100%;
+    position: relative;
+    top: auto;
+    left: auto;
+    padding-left: 40px;
   }
 }
 
@@ -839,6 +860,7 @@ $textshadow: rgb(42, 22, 23);
 
 .menu-item.info ul,
 .menu-item.list ul {
+  padding-top: 4px;
   font-size: 18px;
   color: white;
   text-align: left;
@@ -846,7 +868,7 @@ $textshadow: rgb(42, 22, 23);
 
 .menu-item.info ul>li,
 .menu-item.list ul>li {
-  padding-bottom: 20px;
+  padding-bottom: 10px;
 }
 
 .menu-item.info ul>li>label,

@@ -1,94 +1,112 @@
 ({
+  utils: {
+    async showGamesBlock(data) {
+      const { $root } = data; // в аргументах функции строго data, чтобы фронт корректно восстановил функцию из строки
+
+      const $item = $root.querySelector('.menu-item.game.pinned');
+      if (!$item) $root.querySelector('.menu-item.game > label')?.click();
+
+      const $btn = $root.querySelector('.menu-item-content.games .select-btn.active');
+      if ($btn) $btn.click(); // скрываем открытые конфиги
+
+      await new Promise(resolve => setTimeout(resolve, 0)); // ждем отрисовки фронтенда
+    }
+  },
   steps: {
-    hello: {
+    games: {
       initialStep: true,
-      text: `Для начала нужно выбрать колоду, которой вы будете играть (прямо сейчас доступна только колода "Релиз").`,
-      active: '.select-btn.wait-for-select:not(.disabled)',
-      actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          const $item = $rootEl.querySelector('.menu-item.game.pinned');
-          if (!$item) $rootEl.querySelector('.menu-item.game > label')?.click();
-        },
-      },
+      text: `
+        Это игровые колоды с несколькими вариантами игр для каждой. <a>Рекомендую пройти отдельные обучения по конкретным колодам.</a>
+      `,
+      actions: { before: async (data) => await data.utils.showGamesBlock(data) },
+      active: { selector: '.select-btn.wait-for-select:not(.disabled)', css: { boxShadow: '0px 0px 10px 4px white' } },
       buttons: [
         { text: 'Продолжай', step: 'type' },
         { text: 'Я разберусь', action: 'exit' },
       ],
     },
     type: {
-      text: 'Далее нужно выбрать тип игры. Предлагается несколько вариантов на выбор для одного, двух и трех человек. Важно уточнить, что ИИ еще не настроен, так что поиграть одному в режим для нескольких человек пока что не удастся.',
-      // text: 'Далее нужно выбрать тип игры. Предлагается три варианта на выбор: \r\n "Фриланс" - игра для одного \r\n "Дуэль" - игра 1-на-1 против другого игрока* \r\n "Каждый за себя" - игра для троих человек* \r\n * игра против ИИ еще не поддерживается, так что если вам не с кем играть, то выбирайте режим "Фриланс".',
-      active: '.select-btn.wait-for-select:not(.disabled)',
-      actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          const $item = $rootEl.querySelector('.game-block');
-          if (!$item) $rootEl.querySelector('.select-btn.wait-for-select:not(.disabled)')?.click();
+      text: `
+        Это список идущих прямо сейчас и ожидающих начала игр.
+      `,
+      actions: { before: async (data) => await data.utils.showGamesBlock(data) },
+      active: [
+        { selector: '.game-list-container .tutorial-games', css: { boxShadow: 'none' } },
+        { selector: '.game-list-container .no-games-label', css: { display: 'none' } },
+        { selector: '.game-list-container', css: { boxShadow: 'inset 0 0 20px 10px white' } },
+      ],
+      buttons: [
+        { text: 'Продолжай', step: 'settings' }
+      ],
+    },
+    settings: {
+      text: `
+        Это тип и основные настройки игры (время на ход, количество игроков и т.п.).
+      `,
+      actions: { before: async (data) => await data.utils.showGamesBlock(data) },
+      active: [
+        { selector: '.game-list-container .tutorial-games', css: { boxShadow: 'none' } },
+        { selector: '.game-list-container .no-games-label', css: { display: 'none' } },
+        {
+          selector: '.game-list-container .game-config-info',
+          css: { boxShadow: '0 0 10px 10px white', padding: '4px 10px' }
         },
-      },
-      buttons: [{ text: 'Продолжай', step: 'single' }],
+      ],
+      buttons: [
+        { text: 'Дальше', step: 'teams' }
+      ],
     },
-    single: {
-      text: '"Фриланс" - игра для одного человека, по своему формату напоминающая раскладывание пасьянса. Цель игры - завершить заполнение поля раньше, чем количество пустых зон на поле превысит количество костяшек в колоде. Новые зоны на поле будут появляться каждый раз, когда колода карт-событий окажется пустой.',
-      active: '.select-btn.wait-for-select.single',
-      buttons: [{ text: 'Дальше', step: 'duel' }],
-    },
-    duel: {
-      text: '"Дуэль" - игра для двоих игроков, которые соревнуются между собой. Цель игры - заполнить все зоны поля, при этом победителем считается тот, кто положил последнюю недостающую костяшку.',
-      active: '.select-btn.wait-for-select.duel',
-      buttons: [{ text: 'Дальше', step: 'ffa' }],
-    },
-    ffa: {
-      text: '"Каждый за себя" - разновидность дуэли, но для троих игроков одновременно. Правила такие же - побеждает тот, кто положит последнюю костяшку на поле',
-      active: '.select-btn.wait-for-select.ffa',
-      buttons: [{ text: 'Дальше', step: 'config' }],
-    },
-    config: {
-      text: 'Для каждого типа игры доступны 3 уровня сложности. При этом чем сложнее игра, тем больше денег будет заработано по ее итогам.',
-      active: '.select-btn.wait-for-select:not(.disabled)',
+    teams: {
+      text: `
+        Это иконка для открытия список команд (<a>только у корпоративных игр</a>). Можно присоединиться к любой команде на выбор.
+      `,
+      actions: { before: async (data) => await data.utils.showGamesBlock(data) },
+      active: [
+        { selector: '.game-list-container .tutorial-games', css: { boxShadow: 'none' } },
+        { selector: '.game-list-container .no-games-label', css: { display: 'none' } },
+        { selector: '.game-list-container .show-teams', css: { boxShadow: '0 0 20px 10px white' } },
+      ],
       actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          const $item = $rootEl.querySelector('.game-config-block');
-          if (!$item) $rootEl.querySelector('.select-btn.wait-for-select:not(.disabled)')?.click();
-        },
-      },
-      buttons: [{ text: 'Дальше', step: 'blitz' }],
-    },
-    blitz: {
-      text: '"Блиц" - это самый простой и самый быстрый вариант игры. В нем карты ежедневных событий добавляются непосредственно в руку игрока.',
-      active: '.select-btn.wait-for-select.blitz',
-      buttons: [{ text: 'Дальше', step: 'standart' }],
-    },
-    standart: {
-      text: '"Стандарт" отличается от блица тем, что он обычно играется на большем количестве игровых блоков, а карты ежедневных событий в начале хода могут быть разыграны только в текущем ходу.',
-      active: '.select-btn.wait-for-select.standart',
-      buttons: [{ text: 'Дальше', step: 'hardcore' }],
-    },
-    hardcore: {
-      text: '"Хардкор" - самый сложный, но в тоже время и самый прибыльный режим. Главной его отличительной особенностью является то, что ежедневные события срабатывают автоматически в начале хода.',
-      active: '.select-btn.wait-for-select.hardcore',
-      buttons: [{ text: 'Дальше', step: 'time' }],
-    },
+        before: async (data) => {
+          const { $root, utils } = data;
 
-    time: {
-      text: 'Непосредственно перед началом игры можно выбрать время на ход. Оно не может превышать 120 секунд, но и не должно быть меньше 15 секунд.',
-      active: '.timer',
-      actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          const $item = $rootEl.querySelector('.game-start-block');
-          if (!$item) $rootEl.querySelector('.select-btn.wait-for-select:not(.disabled)')?.click();
+          await utils.showGamesBlock(data)
+
+          const $showTeamsBtn = $root.querySelector('.game-list-container .show-teams');
+          if (!$showTeamsBtn.classList.contains('open')) $showTeamsBtn.click();
         },
       },
-      buttons: [{ text: 'Дальше', step: 'exit' }],
+      buttons: [
+        { text: 'Дальше', step: 'join' }
+      ],
     },
-
-    exit: {
-      text: 'Для начала игры нажмите соответствующую кнопку.',
-      active: '.game-start-block .select-btn',
-      buttons: [{ text: 'Спасибо', action: 'exit' }],
+    join: {
+      text: `
+        Это кнопки <a>для присоединения к игре</a>.
+      `,
+      actions: { before: async (data) => await data.utils.showGamesBlock(data) },
+      active: [
+        { selector: '.game-list-container .tutorial-games', css: { boxShadow: 'none' } },
+        { selector: '.game-list-container .no-games-label', css: { display: 'none' } },
+        { selector: '.game-list-container .join-btn:not(.viewer)', css: { boxShadow: '0 0 20px 10px white' } },
+      ],
+      buttons: [
+        { text: 'Дальше', step: 'view' }
+      ],
     },
+    view: {
+      text: `
+        Можно посмотреть игру <a>в качестве наблюдателя</a>.
+      `,
+      actions: { before: async (data) => await data.utils.showGamesBlock(data) },
+      active: [
+        { selector: '.game-list-container .tutorial-games', css: { boxShadow: 'none' } },
+        { selector: '.game-list-container .no-games-label', css: { display: 'none' } },
+        { selector: '.game-list-container .join-btn.viewer', css: { boxShadow: '0 0 20px 10px white' } },
+      ],
+      buttons: [
+        { text: 'Спасибо', action: 'exit' }
+      ],
+    }
   },
 });

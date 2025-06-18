@@ -26,7 +26,7 @@
 
       const tutorialName = 'lobby-tutorial-start';
       if (!helper && !finishedTutorials[tutorialName]) {
-        const tutorial = getTutorial(tutorialName);
+        const { steps: tutorial } = getTutorial(tutorialName);
         helper = Object.values(tutorial).find(({ initialStep }) => initialStep);
         helper = clone(helper, { convertFuncToString: true });
         currentTutorial = { active: tutorialName };

@@ -1,45 +1,67 @@
 ({
+  utils: {
+    async showChatBlock(data) {
+      const { $root } = data; // в аргументах функции строго data, чтобы фронт корректно восстановил функцию из строки
+
+      const $item = $root.querySelector('.menu-item.chat.pinned');
+      if (!$item) {
+        $root.querySelector('.menu-item.chat > label')?.click();
+        await new Promise(resolve => setTimeout(resolve, 0));  // ждем отрисовки фронтенда
+      }
+    }
+  },
   steps: {
-    hello: {
+    chat: {
       initialStep: true,
-      text: `Для каждой игровой колоды свой список рейтингов (в данный момент доступна только игра "Релиз").`,
-      actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          const $item = $rootEl.querySelector('.menu-item.chat.pinned');
-          if (!$item) $rootEl.querySelector('.menu-item.chat > label')?.click();
-        },
-      },
+      text: `
+        В чате игроки <a>находят соперников по игре</a> и просто общаются между собой.
+      `,
+      actions: { before: async (data) => await data.utils.showChatBlock(data) },
       buttons: [
         { text: 'Продолжай', step: 'username' },
         { text: 'Я разберусь', action: 'exit' },
       ],
     },
     username: {
-      text: 'Для того, чтобы писать в чате, необходимо указать свое имя.',
-      active: '.menu-item.chat .chat-controls-alert',
+      text: `
+        Для того, чтобы писать в чате, <a>необходимо указать свое имя</a>.
+      `,
       actions: {
-        before: (self) => {
-          const $inputNameForm = self.$root.$el.querySelector('.menu-item.chat .chat-controls-alert');
+        before: async (data) => {
+          const { $root, utils } = data;
+
+          await utils.showChatBlock(data)
+
+          const $inputNameForm = $root.querySelector('.menu-item.chat .chat-controls-alert');
           const skipStep = $inputNameForm ? false : true;
           return { skipStep };
         },
       },
-      pos: {
-        desktop: 'bottom-right',
-        mobile: 'top-right',
-      },
-      buttons: [{ text: 'Продолжай', step: 'channels' }],
+      active: { selector: '.menu-item.chat .chat-controls-alert', css: { boxShadow: 'inset 0 0 20px 10px white' } },
+      pos: { desktop: 'bottom-right', mobile: 'top-right' },
+      buttons: [
+        { text: 'Продолжай', step: 'personal' }
+      ],
     },
-    channels: {
-      text: 'В разделе "Игроки онлайн" отображается список всех пользователей, находящихся в настоящий момент на портале. Чтобы написать личное сообщение пользователю, то нужно нажать на его имя в этом блоке.',
-      active: '.menu-item.chat .chat-header',
-      buttons: [{ text: 'Дальше', step: 'exit' }],
+    personal: {
+      text: `
+        Чтобы написать <a>личное сообщение пользователю</a>, нужно нажать на его имя.
+      `,
+      actions: { before: async (data) => await data.utils.showChatBlock(data) },
+      active: { selector: '.user-list span', css: { boxShadow: '0 0 10px 4px white' } },
+      buttons: [
+        { text: 'Дальше', step: 'exit' }
+      ],
     },
     exit: {
-      text: 'Получить доступ ко всем ранее открытым чатами можно с помощью отдельного переключателя.',
+      text: `
+        Это <a>список всех доступных чатов</a> (в том числе ранее открытых личных чатов).
+      `,
+      actions: { before: async (data) => await data.utils.showChatBlock(data) },
       active: '.menu-item.chat .chat-channels',
-      buttons: [{ text: 'Спасибо', action: 'exit' }],
+      buttons: [
+        { text: 'Спасибо', action: 'exit' }
+      ],
     },
   },
 });

@@ -1,14 +1,57 @@
 ({
+  utils: {
+    async showTopBlock(data) {
+      const { $root } = data; // в аргументах функции строго data, чтобы фронт корректно восстановил функцию из строки
+
+      if (!$root.querySelector('.menu-item.top.pinned')) {
+        $root.querySelector('.menu-item.top > label').click();
+        await new Promise(resolve => setTimeout(resolve, 0));  // ждем отрисовки фронтенда
+      }
+      const $close = $root.querySelector('.menu-item-content .title .close');
+      if ($close) { // открыта таблица рейтинга
+        $close.click();
+        await new Promise(resolve => setTimeout(resolve, 0));  // ждем отрисовки фронтенда
+      }
+      if ($root.querySelector('.menu-item.top.pinned .toggle-ranking')) { // открыт список рейтингов (для первой игры)
+        $root.querySelector('.menu-item.top.pinned .toggle-game').click();
+        await new Promise(resolve => setTimeout(resolve, 0)); // ждем отрисовки фронтенда
+      }
+    },
+    async showRankings(data) {
+      const { $root, utils } = data; // в аргументах функции строго data, чтобы фронт корректно восстановил функцию из строки
+      const selector = '.menu-item.top.pinned .toggle-game';
+
+      let $item = $root.querySelector(selector);
+      if (!$item) {
+        await utils.showTopBlock(data);
+        $item = $root.querySelector(selector);
+      }
+      $item.click();
+
+      await new Promise(resolve => setTimeout(resolve, 0)); // ждем отрисовки фронтенда
+    },
+    async showRating(data) {
+      const { $root, utils } = data; // в аргументах функции строго data, чтобы фронт корректно восстановил функцию из строки
+      const selector = '.menu-item.top.pinned .toggle-ranking';
+
+      let $item = $root.querySelector(selector);
+      if (!$item) {
+        await utils.showRankings(data);
+        $item = $root.querySelector(selector);
+      }
+      $item.click();
+    }
+  },
   steps: {
-    hello: {
+    top: {
       initialStep: true,
-      text: `Для каждой игровой колоды свой список рейтингов (в данный момент доступна только игра "Релиз").`,
-      actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          const $item = $rootEl.querySelector('.menu-item.top.pinned');
-          if (!$item) $rootEl.querySelector('.menu-item.top > label')?.click();
-        },
+      text: `
+        Для каждой игровой колоды свой список рейтингов.
+      `,
+      actions: { before: async (data) => await data.utils.showTopBlock(data) },
+      active: {
+        selector: '.toggle-game > span',
+        css: { padding: '4px 10px' }
       },
       buttons: [
         { text: 'Продолжай', step: 'list' },
@@ -16,32 +59,40 @@
       ],
     },
     list: {
-      text: 'Каждый рейтинг оценивает игроков по своим характеристикам. Например это может быть наибольшее количество игр и полученный доход, или наиболее качественное (без костылей) и быстрое решение задач.',
-      actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          const $item = $rootEl.querySelector('.menu-item-content .menu-game-item ul');
-          if (!$item) $rootEl.querySelector('.menu-item-content .menu-game-item .toggle-game')?.click();
-        },
+      text: `
+        Каждый рейтинг формируется по своим показателям. Например, это может быть наибольшее количество игр или полученный доход.
+      `,
+      actions: { before: async (data) => await data.utils.showRankings(data) },
+      active: {
+        selector: '.menu-game-item > ul',
+        css: {
+          boxShadow: 'inset 0px 0px 10px 4px white',
+          ...{ marginRight: '40px', paddingTop: "10px", paddingBottom: '10px' }
+        }
       },
-      buttons: [{ text: 'Продолжай', step: 'rating' }],
+      buttons: [
+        { text: 'Продолжай', step: 'rating' }
+      ],
     },
     rating: {
-      text: 'В таблице каждого рейтинга, помимо 5 лучших результатов, всегда отображается ваш результат - он выделяется по цвету среди все остальных строк.',
+      text: `
+        В таблице 5 лучших результатов. <a>Твой личный результат выделен по цвету среди все остальных строк</a>.
+      `,
+      actions: { before: async (data) => await data.utils.showRating(data) },
       active: 'tr.iam',
-      actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          const $item = $rootEl.querySelector('.menu-item-content .rankings .title');
-          if (!$item) $rootEl.querySelector('.menu-item-content .menu-game-item .toggle-ranking')?.click();
-        },
-      },
-      buttons: [{ text: 'Дальше', step: 'exit' }],
+      buttons: [
+        { text: 'Дальше', step: 'exit' }
+      ],
     },
     exit: {
-      text: 'Для возврата к списку рейтингов необходимо нажать на заголовок таблицы.',
-      active: '.menu-item-content .rankings .title > span',
-      buttons: [{ text: 'Спасибо', action: 'exit' }],
+      text: `
+        Это иконка для возврата к списку рейтингов.
+      `,
+      actions: { before: async (data) => await data.utils.showRating(data) },
+      active: { selector: '.menu-item-content .title .close', css: { boxShadow: '0px 0px 10px 10px white' } },
+      buttons: [
+        { text: 'Спасибо', action: 'exit' }
+      ],
     },
   },
 });

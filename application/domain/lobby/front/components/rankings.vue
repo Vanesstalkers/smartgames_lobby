@@ -2,42 +2,30 @@
   <perfect-scrollbar ref="scrollRankings">
     <div class="rankings">
       <div v-if="!menuOpened" class="title">
-        <div v-on:click="menuOpened = true" class="close">Х</div>
-        <div>
-          <font-awesome-icon :icon="['fas', 'chart-simple']" size="xl" :style="{ paddingRight: '4px' }" />
-          <span>
-            {{ activeRatingTitle }}
-          </span>
-        </div>
+        <div v-on:click="menuOpened = true" class="close" />
+        <div>{{ activeRatingTitle }}</div>
       </div>
       <div v-if="menuOpened" class="menu">
         Выбор рейтинга:
         <div v-for="game in gameList" :key="game.title" class="menu-game-item">
-          <h4
-            class="toggle-game"
-            v-on:click="
-              toggleMenuGameItem({
-                gameCode: game.code,
-                event: $event,
-              })
-            "
-          >
-            Игра "{{ game.title }}"
+          <h4 class="toggle-game" v-on:click="
+            toggleMenuGameItem({
+              gameCode: game.code,
+              event: $event,
+            })
+            ">
+            <span>Игра "{{ game.title }}"</span>
           </h4>
           <ul v-if="menuGameItems[game.code]?.open">
             <li v-for="ranking in game.rankingList" :key="ranking.title">
-              <span
-                class="toggle-ranking"
-                v-on:click="
-                  menuOpened = false;
-                  activeRating = {
-                    title: `${ranking.title} (Игра &quot;${game.title}&quot;)`,
-                    headers: ranking.headers,
-                    list: getUsersRankings({ gameType: game.code, usersList: ranking.usersTop }),
-                  };
-                "
-                >{{ ranking.title }}</span
-              >
+              <span class="toggle-ranking" v-on:click="
+                menuOpened = false;
+              activeRating = {
+                title: `${ranking.title} (Игра &quot;${game.title}&quot;)`,
+                headers: ranking.headers,
+                list: getUsersRankings({ gameType: game.code, usersList: ranking.usersTop }),
+              };
+              ">{{ ranking.title }}</span>
             </li>
           </ul>
         </div>
@@ -50,11 +38,8 @@
                 {{ header.title }}
               </th>
             </tr>
-            <tr
-              v-for="(item, idx) in activeRating.list"
-              :key="idx"
-              :class="[item.iam ? 'iam' : '', item.noGames ? 'no-games' : '']"
-            >
+            <tr v-for="(item, idx) in activeRating.list" :key="idx"
+              :class="[item.iam ? 'iam' : '', item.noGames ? 'no-games' : '']">
               <td v-for="header in activeRatingHeaders" :key="header.code + idx" :code="header.code">
                 {{ item[header.code] }}
               </td>
@@ -115,31 +100,32 @@ export default {
         });
       }
     },
-    getUsersRankings({ gameType, usersList }) {
+    getUsersRankings({ gameType, usersList = [] }) {
       const lobbyUsers = this.$root.state.store.lobby[this.state.currentLobby].users || {};
       const result = usersList.map((userId, idx) => ({
         idx: idx + 1,
-        ...(lobbyUsers[userId].rankings?.[gameType] || {}),
-        player: lobbyUsers[userId].name || 'имя не указано',
+        ...(lobbyUsers[userId]?.rankings?.[gameType] || {}),
+        player: lobbyUsers[userId]?.name || 'имя не указано',
         iam: userId === this.state.currentUser,
       }));
       if (result.filter((user) => user.iam).length === 0) {
         const userId = this.state.currentUser;
+        const user = lobbyUsers[userId] || {};
         result.push({ player: '...' });
-        const iamItem = lobbyUsers[userId].rankings?.[gameType]
-          ? { ...lobbyUsers[userId].rankings[gameType] }
+        const iamItem = user.rankings?.[gameType]
+          ? { ...user.rankings[gameType] }
           : { noGames: true };
         iamItem.idx = '-';
         iamItem.iam = true;
-        iamItem.player = lobbyUsers[userId].name || 'игрок (имя не указано)';
+        iamItem.player = user.name || 'игрок (имя не указано)';
         result.push(iamItem);
       }
       return result;
     },
   },
-  async created() {},
-  async mounted() {},
-  async beforeDestroy() {},
+  async created() { },
+  async mounted() { },
+  async beforeDestroy() { },
 };
 </script>
 <style src="vue2-perfect-scrollbar/dist/vue2-perfect-scrollbar.css" />
@@ -147,7 +133,11 @@ export default {
 .rankings {
   overflow: hidden !important;
 
-  > * {
+  .tutorial-active {
+    box-shadow: 0px 0px 20px 5px white;
+  }
+
+  >* {
     height: 100%;
 
     &.title {
@@ -162,28 +152,20 @@ export default {
       text-align: center;
       padding: 8px 0px;
 
-      span {
-        &.tutorial-active {
-          box-shadow: 0px 5px 20px 20px white;
-        }
-      }
-
       .close {
-        &:hover {
-          color: black;
-          background-color : #f4e205;
-        }
-        font-size: 8px;
-        font-weight: bolder;
-        background: transparent;
-        color: #f4e205;
-        border-radius: 50%;
-        outline: 2px solid #f4e205;
-        padding: 2px 4.5px;
         position: absolute;
         left: 10px;
         top: 10px;
+        width: 18px;
+        height: 18px;
+        background-size: 18px;
+        background-image: url(@/assets/back.png);
+        border-radius: 50%;
         cursor: pointer;
+
+        &:hover {
+          opacity: 0.7;
+        }
       }
     }
 
@@ -246,24 +228,19 @@ export default {
         color: #f4e205;
         font-weight: bold;
 
-        &.no-games > td[code='player'] {
+        &.no-games>td[code='player'] {
           position: relative;
 
           &:after {
-            content: 'в эту игру еще не играли';
+            content: "не сыграно ни одной игры";
             position: absolute;
             left: 100%;
             white-space: nowrap;
-            text-align: left;
-            font-style: italic;
+            text-align: center;
             font-size: 10px;
             line-height: 13px;
-            color: #aaa;
+            color: white;
           }
-        }
-
-        &.tutorial-active {
-          box-shadow: 0px 0px 20px 5px #f4e205;
         }
       }
     }
