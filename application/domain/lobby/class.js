@@ -218,7 +218,7 @@
       this.set({ chat: { [lastEnterEventId]: null } });
 
       if (user.personalChatMap) {
-        await lib.store.broadcaster.publishAction(`user-${userId}`, 'broadcastToSessions', {
+        await lib.store.broadcaster.publishAction.call(this, `user-${userId}`, 'broadcastToSessions', {
           type: 'updateStore',
           data: { user: { [userId]: { personalChatMap: user.personalChatMap } } },
         });
@@ -314,7 +314,7 @@
           .toFile(`${outputDirectory}/${i + 1}.png`);
       }
 
-      await lib.store.broadcaster.publishData(`user-${userId}`, { avatars: { code: avatarCode, gender: userGender } });
+      await lib.store.broadcaster.publishData.call(this, `user-${userId}`, { avatars: { code: avatarCode, gender: userGender } });
 
       if (newDefaultAvatars) {
         const { code: newDefCode, gender: newDefGender } = newDefaultAvatars;
@@ -330,7 +330,7 @@
       }
     } catch (exception) {
       console.log({ exception });
-      await lib.store.broadcaster.publishAction(`user-${userId}`, 'broadcastToSessions', {
+      await lib.store.broadcaster.publishAction.call(this, `user-${userId}`, 'broadcastToSessions', {
         data: { message: `Ошибка генерации (${exception.message})`, stack: exception.stack },
       });
     }
@@ -379,7 +379,7 @@
       player[id] = { avatarsMap };
     }
 
-    await lib.store.broadcaster.publishData(`game-${gameId}`, { store: { player } });
+    await lib.store.broadcaster.publishData.call(this, `game-${gameId}`, { store: { player } });
 
     const { [deckType]: { games: {
       [gameType]: { items: {
@@ -410,7 +410,7 @@
       await this.unsubscribe(`game-${gameId}`);
       this.set({ games: { [gameId]: null } });
     } else {
-      const isAlive = await lib.store.broadcaster.publishAction(`game-${gameId}`, 'isAlive');
+      const isAlive = await lib.store.broadcaster.publishAction.call(this, `game-${gameId}`, 'isAlive');
       if (!isAlive) {
         await this.unsubscribe(`game-${gameId}`);
         this.set({ games: { [gameId]: null } });
@@ -421,7 +421,7 @@
 
       if (!this.games[gameId] && initUserId) {
         await this.saveChanges();
-        lib.store.broadcaster.publishAction(`user-${initUserId}`, 'broadcastToSessions', {
+        lib.store.broadcaster.publishAction.call(this, `user-${initUserId}`, 'broadcastToSessions', {
           data: { message: 'Игра была завершена' },
         });
       }
@@ -429,7 +429,7 @@
   }
 
   async checkGameStatuses() {
-    for (const [gameId] of Object.keys(this.games)) {
+    for (const gameId of Object.keys(this.games)) {
       await this.checkGame({ gameId });
     }
     await this.saveChanges();

@@ -45,7 +45,7 @@
       }
 
       const lobbyName = `lobby-${lobbyId}`;
-      await lib.store.broadcaster.publishAction(lobbyName, 'userLeave', {
+      await lib.store.broadcaster.publishAction.call(this, lobbyName, 'userLeave', {
         sessionId,
         userId: this.id(),
       });
