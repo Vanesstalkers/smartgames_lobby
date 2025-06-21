@@ -92,17 +92,13 @@
       superPos: true,
       showMenu: true,
       actions: {
-        _prepare: (step, { isMobile }) => {
-          const replaceText = 'левом нижнем';
-          step.text = step.text.replace('[[menu-position]]', replaceText);
-        },
         profile: (data, self) => {
           self.showProfile();
         },
       },
       active: '.helper-guru',
       text: `
-        В [[menu-position]] углу иконка МЕНЮ ИГРОКА. В нем можно:
+        В левом нижнем углу иконка МЕНЮ ИГРОКА. С помощью него можно:
         
         - получить доступ к своему профилю
         - <a>повторно запустить любое обучение</a>

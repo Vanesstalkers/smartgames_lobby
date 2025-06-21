@@ -24,7 +24,7 @@
       </div>
     </div>
 
-    <helper v-if="!userData.gameId" :showProfile="showProfile" :defaultMenu="defaultTutorialMenu" />
+    <helper :showProfile="showProfile" :defaultMenu="defaultTutorialMenu" />
 
     <div class="menu-item-list">
       <div :class="['menu-item', pinned.game ? 'pinned' : '', 'game']">
