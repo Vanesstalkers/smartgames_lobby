@@ -4,12 +4,9 @@
       const {
         helper: { getTutorial },
         utils: { structuredClone: clone },
-        store: {
-          broadcaster: { publishAction },
-        },
       } = lib;
 
-      await publishAction(`lobby-${lobbyId}`, 'userEnter', {
+      await lib.store.broadcaster.publishAction.call(this, `lobby-${lobbyId}`, 'userEnter', {
         sessionId,
         userId: this.id(),
         name: this.name,
