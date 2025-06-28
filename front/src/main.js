@@ -114,7 +114,6 @@ const init = async () => {
           handlers = config;
           config = {};
         }
-        const { login, password, demo } = config || {};
         const { success: onSuccess, error: onError } = handlers;
 
         const token = localStorage.getItem(window.tokenName);
@@ -122,15 +121,7 @@ const init = async () => {
           (await api.action
             .public({
               path: 'user.api.initSession',
-              args: [
-                {
-                  token,
-                  windowTabId: window.name,
-                  login,
-                  password,
-                  demo,
-                },
-              ],
+              args: [{ token, windowTabId: window.name, ...config }],
             })
             .catch(async (err) => {
               if (typeof onError === 'function') await onError(err);

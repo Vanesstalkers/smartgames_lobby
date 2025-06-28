@@ -21,6 +21,8 @@
           <button v-on:click="login">Авторизоваться</button>
         </template>
         <div v-if="auth.err" class="err">{{ auth.err }}</div>
+        <br>
+        <button class="link" style="color: white" v-on:click="createDemoUser">Меня интересуют корпоративные игры</button>
       </div>
     </div>
 
@@ -266,7 +268,7 @@ export default {
       });
     },
     async createDemoUser() {
-      await this.initSession({ demo: true });
+      await this.initSession({ demo: true, tutorial: { tutorial: 'lobby-tutorial-sales', step: 'teambuilding' } });
     },
     async login() {
       await this.initSession({ login: this.auth.login, password: this.auth.password });

@@ -21,17 +21,19 @@
         helper = null;
       }
 
-      const tutorialName = 'lobby-tutorial-start';
-      if (!helper && !finishedTutorials[tutorialName]) {
-        const { steps: tutorial } = getTutorial(tutorialName);
-        helper = Object.values(tutorial).find(({ initialStep }) => initialStep);
-        helper = clone(helper, { convertFuncToString: true });
-        currentTutorial = { active: tutorialName };
+      if (!this.gameId) {
+        const tutorialName = 'lobby-tutorial-start';
+        if (!helper && !finishedTutorials[tutorialName]) {
+          const { steps: tutorial } = getTutorial(tutorialName);
+          helper = Object.values(tutorial).find(({ initialStep }) => initialStep);
+          helper = clone(helper, { convertFuncToString: true });
+          currentTutorial = { active: tutorialName };
+        }
+        helperLinks = {
+          ...domain.lobby.tutorial.getHelperLinks(),
+          ...helperLinks,
+        };
       }
-      helperLinks = {
-        ...domain.lobby.tutorial.getHelperLinks(),
-        ...helperLinks,
-      };
 
       this.set({ currentTutorial, helper, helperLinks }, { removeEmptyObject: true });
       await this.saveChanges();

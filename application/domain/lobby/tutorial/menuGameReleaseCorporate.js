@@ -31,6 +31,16 @@
     }
   },
   steps: {
+    initFromSales: {
+      text: `
+        Чтобы попасть в копроративный режим игры необходимо в ИГРОВОЙ КОМНАТЕ последовательно выбрать <a>РЕЛИЗ -> Потасовка</a>.  
+      `,
+      actions: { before: async (data) => await data.utils.transferToConfigBlock(data) },
+      active: { selector: '.breadcrumbs', css: { boxShadow: 'inset 0 0 20px 10px white', padding: '30px 0px' } },
+      buttons: [
+        { text: 'Продолжай', step: 'corporate' },
+      ],
+    },
     corporate: {
       initialStep: true,
       text: `
@@ -68,7 +78,7 @@
     },
     teams: {
       text: `
-        На сложность игры так же влияет <a>значение таймера, доступного на ход</a>.
+        Обязательно необходимо указать количество команд, которые будут участвовать в игре.
       `,
       actions: { before: async (data) => await data.utils.transferToSettingsBlock(data) },
       active: { selector: '.game-start-block .teams', css: { boxShadow: '0 0 20px 10px white', padding: '4px 10px' } },

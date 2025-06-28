@@ -4,9 +4,18 @@
       superPos: true,
       bigControls: true,
       text: 'Проведение корпоративных мероприятий в формате настольных игр для любого количества участников.',
+      actions: {
+        before: async (data) => {
+          const { $root } = data; // в аргументах функции строго data, чтобы фронт корректно восстановил функцию из строки
+
+          const $item = $root.querySelector('.menu-item.info.pinned');
+          if (!$item) $root.querySelector('.menu-item.info > label')?.click();
+        }
+      },
       buttons: [
-        { text: 'Покажи бизнес-игры <a>для ИТ</a>', link: 'https://release.smartgames.studio/#/rules' },
-        { text: 'Покажи бизнес-игры <a>для автодилеров</a>', link: 'https://auto.smartgames.studio/#/rules' },
+        { text: 'Расскажи про бизнес-игры <a>для ИТ</a>', link: 'https://release.smartgames.studio/#/rules' },
+        { text: 'Проведи <a>демонстрацию</a> игр <a>для ИТ</a>', action: 'changeTutorial', tutorial: 'lobby-tutorial-menuGameReleaseCorporate', step: 'initFromSales' },
+        { text: 'Расскажи про бизнес-игры <a>для автодилеров</a>', link: 'https://auto.smartgames.studio/#/rules' },
         { text: 'Назад', action: 'exit' },
       ],
     },

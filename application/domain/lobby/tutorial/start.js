@@ -28,7 +28,9 @@
       `,
       actions: {
         before: ({ $root }) => {
-          let $item = $root.querySelector('.menu-item.list.pinned');
+          $root.querySelectorAll('.menu-item.pinned label').forEach($el => $el.click());
+
+          const $item = $root.querySelector('.menu-item.list.pinned');
           if (!$item) $root.querySelector('.menu-item.list > label')?.click();
         },
       },
