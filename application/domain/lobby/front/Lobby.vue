@@ -1,5 +1,6 @@
 <template>
   <div v-if="lobbyDataLoaded" id="lobby" :class="[
+    gameRestoreProcess ? 'game-restore-process-active' : '',
     state.isMobile ? 'mobile-view' : '',
     state.isLandscape ? 'landscape-view' : 'portrait-view',
     !state.currentUser ? 'need-auth' : '',
@@ -22,7 +23,10 @@
         </template>
         <div v-if="auth.err" class="err">{{ auth.err }}</div>
         <br>
-        <button class="link" style="color: white" v-on:click="createDemoUser">Меня интересуют корпоративные игры</button>
+        <button class="link" style="color: white"
+          v-on:click="createDemoUser({ tutorial: { tutorial: 'lobby-tutorial-sales', step: 'teambuilding' } })">
+          Меня интересуют корпоративные игры
+        </button>
       </div>
     </div>
 
@@ -142,6 +146,7 @@ export default {
     return {
       lobbyDataLoaded: false,
       lobbyDataLoadEvents: [],
+      gameRestoreProcess: false,
       auth: { login: '', password: '', err: null },
       unreadMessages: 0,
       profileActive: false,
@@ -158,7 +163,10 @@ export default {
   },
   watch: {
     'userData.gameId': function (val) {
-      if (!val) this.iframeScr = '';
+      if (!val) {
+        this.iframeScr = '';
+        this.gameRestoreProcess = false;
+      }
     },
     lobbyDataLoaded: function () {
       this.$set(this.$root.state, 'viewLoaded', true);
@@ -253,7 +261,7 @@ export default {
     async initSession(config = {}) {
       await this.$root.initSession(config, {
         success: async ({ lobbyId, availableLobbies }) => {
-          if (lobbyId) {
+          if (lobbyId) { // ??? как будто lobbyId всегда пустое
             this.$set(this.$root.state, 'currentLobby', lobbyId);
             this.lobbyDataLoaded = true;
           } else {
@@ -261,14 +269,14 @@ export default {
           }
         },
         error: async (err) => {
-          if (err.message) this.auth.err = err.message;
+          if (err?.message) this.auth.err = err.message;
           // чтобы пользователь увидел форму авторизации
           this.lobbyDataLoaded = true;
         },
       });
     },
-    async createDemoUser() {
-      await this.initSession({ demo: true, tutorial: { tutorial: 'lobby-tutorial-sales', step: 'teambuilding' } });
+    async createDemoUser({ tutorial } = {}) {
+      await this.initSession({ demo: true, tutorial });
     },
     async login() {
       await this.initSession({ login: this.auth.login, password: this.auth.password });
@@ -276,9 +284,10 @@ export default {
     async callLobbyEnter({ lobbyId }) {
       await api.action
         .call({ path: 'lobby.api.enter', args: [{ lobbyId }] })
-        .then(() => {
+        .then((data) => {
           this.$set(this.$root.state, 'currentLobby', lobbyId);
           this.lobbyDataLoaded = true;
+          if (data.restoreGame) this.gameRestoreProcess = true;
         })
         .catch(prettyAlert);
     },
@@ -359,7 +368,6 @@ export default {
   async created() {
     this.state.emit.restoreGame = async (data) => {
       const { deckType, gameType, gameId, needLoadGame } = data;
-
       window.iframeEvents.push({
         data: {
           args: [{ deckType, gameType, gameId, needLoadGame }],
@@ -388,6 +396,7 @@ export default {
       // }
     };
     this.state.emit.hideGameIframe = () => {
+      this.gameRestoreProcess = false;
       this.iframeScr = '';
     };
   },
@@ -425,6 +434,16 @@ export default {
 #lobby {
   height: 100%;
   width: 100%;
+
+  &.game-restore-process-active:after {
+    content: 'Загружается последняя игра...';
+    color: #f4e205;
+    line-height: 36px;
+  }
+
+  &.game-restore-process-active>*:not(iframe) {
+    display: none;
+  }
 }
 
 #lobby iframe {

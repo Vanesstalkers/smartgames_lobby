@@ -45,11 +45,11 @@
         ФРИЛАНС - <a>игра для одного игрока</a>
         ДУЭЛЬ - <a>игра на двоих друг против друга</a>
         КАЖДЫЙ ЗА СЕБЯ - <a>игра для 3-х игроков</a>
-        ПОТАСОВКА - <a>формат корпоративной игры</a>
+        КОРПОРАТИВНЫЕ ПРОЕКТЫ - <a>формат корпоративной игры</a>
       `,
       actions: { before: async (data) => await data.utils.transferToGameTypeBlock(data) },
       active: '.release-game .select-btn:not(.disabled)',
-      buttons: [{ text: 'Продолжай', step: 'config' }, { text: 'exit', action: 'exit' }],
+      buttons: [{ text: 'Продолжай', step: 'config' }],
     },
     config: {
       text: `

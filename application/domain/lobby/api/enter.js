@@ -23,7 +23,7 @@ async (context, { lobbyId }) => {
     if (!gameInfo) {
       user.set({ gameId: null, playerId: null, viewerId: null });
       await user.saveChanges();
-      
+
       return { status: 'ok' };
     }
 
@@ -42,6 +42,7 @@ async (context, { lobbyId }) => {
       // }
     }
     session.emit('restoreGame', { deckType, gameType, gameId, needLoadGame });
+    return { status: 'ok', restoreGame: true };
   } else {
     session.set({ lobbyId });
     await session.saveChanges();

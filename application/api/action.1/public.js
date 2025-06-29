@@ -9,16 +9,24 @@
       if (!methodContainer) methodContainer = lib.utils.getDeep(lib, splittedPath);
 
       const { method, access } = methodContainer || {};
+
       if (typeof method !== 'function') throw new Error(`Method (path="${path}") not found`);
       if (access !== 'public') throw new Error(`Method (path="${path}") not found`);
+
       if (!Array.isArray(args)) args = [args];
       return await method(context, ...args);
     } catch (err) {
-      console.log(err);
+      if (err === 'new_user') {
+        console.info('new_user');
+        return { status: 'ok', newUser: true };
+      }
+      else console.log(err);
+
       context.client.emit('action/emit', {
         eventName: 'alert',
         data: { message: err.message, stack: err.stack },
       });
+
       return err;
     }
   },

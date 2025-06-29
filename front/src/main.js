@@ -126,6 +126,7 @@ const init = async () => {
             .catch(async (err) => {
               if (typeof onError === 'function') await onError(err);
             })) || {};
+        if (session.newUser && typeof onError === 'function') await onError(); // отработает lobbyDataLoaded = true
 
         const { token: sessionToken, userId, reconnect } = session;
         if (reconnect) {

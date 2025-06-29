@@ -33,7 +33,7 @@
   steps: {
     initFromSales: {
       text: `
-        Чтобы попасть в копроративный режим игры необходимо в ИГРОВОЙ КОМНАТЕ последовательно выбрать <a>РЕЛИЗ -> Потасовка</a>.  
+        Чтобы попасть в копроративный режим игры необходимо в ИГРОВОЙ КОМНАТЕ последовательно выбрать <a>РЕЛИЗ -> Корпоративные проекты</a>.  
       `,
       actions: { before: async (data) => await data.utils.transferToConfigBlock(data) },
       active: { selector: '.breadcrumbs', css: { boxShadow: 'inset 0 0 20px 10px white', padding: '30px 0px' } },
