@@ -2,38 +2,58 @@
   <div :class="['games', bigConfig ? 'big-config' : '']">
     <div class="new-game-controls">
       <div class="breadcrumbs">
-        <span :class="['select-btn', deckType ? 'active selected' : '']"
-          @click="selectGameConfig(null), selectGameType(null), selectDeckType(null)">
+        <span
+          :class="['select-btn', deckType ? 'active selected' : '']"
+          @click="selectGameConfig(null), selectGameType(null), selectDeckType(null)"
+        >
           {{ deckMap[deckType]?.title || 'Выбор колоды:' }}
         </span>
-        <span v-if="deckType" :class="['select-btn', gameType ? 'active selected' : '']"
-          @click="selectGameConfig(null), selectGameType(null)">
+        <span
+          v-if="deckType"
+          :class="['select-btn', gameType ? 'active selected' : '']"
+          @click="selectGameConfig(null), selectGameType(null)"
+        >
           {{ gameTypeMap[gameType]?.title || 'Выбор типа игры:' }}
         </span>
-        <span v-if="gameType" :class="['select-btn', gameConfig ? 'active selected' : '']"
-          @click="selectGameConfig(null)">
+        <span
+          v-if="gameType"
+          :class="['select-btn', gameConfig ? 'active selected' : '']"
+          @click="selectGameConfig(null)"
+        >
           {{ gameConfigMap[gameConfig] ? gameConfigMap[gameConfig].title : 'Выбор режима:' }}
         </span>
       </div>
       <div v-if="!deckType" class="game-types">
-        <div v-for="[code, game] in gameDeckList" :key="code"
+        <div
+          v-for="[code, game] in gameDeckList"
+          :key="code"
           :class="['select-btn', `game-${code}`, 'wait-for-select', game.active === false ? 'disabled' : '']"
-          @click="selectDeckType(code)">
+          @click="selectDeckType(code)"
+        >
           <div class="title"><font-awesome-icon :icon="game.icon" /> {{ game.title }}</div>
         </div>
       </div>
 
       <div v-if="!gameType" :class="['game-block', `${deckType}-game`]">
-        <div v-for="[code, game] in gameTypeList" :key="code"
+        <div
+          v-for="[code, game] in gameTypeList"
+          :key="code"
           :class="['select-btn', 'wait-for-select', code, game.active === false ? 'disabled' : '']"
-          :style="game.style || {}" @click="selectGameType(code)">
+          :style="game.style || {}"
+          @click="selectGameType(code)"
+        >
           <font-awesome-icon :icon="game.icon" /> {{ game.title }}
         </div>
       </div>
 
       <div v-if="!gameConfig" :class="['game-config-block', `${deckType}-game-config`]">
-        <div v-for="[code, config] in gameConfigList" :key="code" :class="['select-btn', 'wait-for-select', code]"
-          :style="config.style || {}" v-on:click="selectGameConfig(code)">
+        <div
+          v-for="[code, config] in gameConfigList"
+          :key="code"
+          :class="['select-btn', 'wait-for-select', code]"
+          :style="config.style || {}"
+          v-on:click="selectGameConfig(code)"
+        >
           {{ config.title }}
         </div>
       </div>
@@ -81,18 +101,29 @@
           </div>
           <button class="select-btn active" @click="addGame()">Начать игру</button>
         </div>
+        <div v-if="difficultyList.length" class="flex-block">
+          <span class="label">Уровень ИИ</span>
+          <select :value="difficulty" class="select-input" @change="updateDifficulty">
+            <option v-for="option in difficultyList" :key="option.code" :value="option.code">{{ option.title }}</option>
+          </select>
+        </div>
       </div>
     </div>
     <hr />
     <div class="game-list-container">
       <perfect-scrollbar class="game-list">
-        <div v-if="lobbyGameList.length === 0" class="no-games-label"> В данной момент нет активных игр</div>
+        <div v-if="lobbyGameList.length === 0" class="no-games-label">В данной момент нет активных игр</div>
 
         <tutorial-games class="tutorial-games" :show-teams="showTeams" @show-team="showTeam" />
 
         <div v-for="game in lobbyGameList" :key="game.id">
-          <game-item :game="game" :deck-map="deckMap" :show-teams="showTeams[game.id]" @show-team="showTeam(game.id)"
-            @join="joinGame" />
+          <game-item
+            :game="game"
+            :deck-map="deckMap"
+            :show-teams="showTeams[game.id]"
+            @show-team="showTeam(game.id)"
+            @join="joinGame"
+          />
         </div>
       </perfect-scrollbar>
     </div>
@@ -102,15 +133,15 @@
 <script>
 import { PerfectScrollbar } from 'vue2-perfect-scrollbar';
 import '@fancyapps/ui/dist/fancybox/fancybox.css';
-import GameItem from './game-item.vue'
-import TutorialGames from './tutorial-games.vue'
+import GameItem from './game-item.vue';
+import TutorialGames from './tutorial-games.vue';
 
 export default {
   name: 'games',
   components: {
     PerfectScrollbar,
     GameItem,
-    TutorialGames
+    TutorialGames,
   },
   props: {
     showGameIframe: Function,
@@ -127,6 +158,8 @@ export default {
       playerCount: { min: null, max: null, val: null },
       maxPlayersInGame: { min: null, max: null, val: null },
       showTeams: {},
+      difficultyList: [],
+      difficulty: null,
     };
   },
   watch: {},
@@ -178,11 +211,13 @@ export default {
             const players = Object.keys(game.playerMap).map((id) => game.store?.player[id] || {});
             game.joinedPlayers = players.length;
             game.teams = Object.entries(game.gamesMap).map(([id, playersMap]) => {
-              const players = Object.values(playersMap).map((userId) => (this.lobby.users[userId]?.name || 'игрок без имени')).join(', ');
+              const players = Object.values(playersMap)
+                .map((userId) => this.lobby.users[userId]?.name || 'игрок без имени')
+                .join(', ');
               return {
                 id,
                 title: game.store?.game[id]?.title + ' (' + (players.length ? players : '') + ')',
-              }
+              };
             });
           }
           if (waitForPlayer) game.waitForPlayer = true;
@@ -205,11 +240,25 @@ export default {
       const configs = this.userData.lobbyGameConfigs;
       if (!configs) return;
 
-      const { deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame, gameRoundLimit } = configs.active;
+      const {
+        deckType,
+        gameType,
+        gameConfig,
+        gameTimer,
+        teamsCount,
+        playerCount,
+        maxPlayersInGame,
+        gameRoundLimit,
+        difficulty,
+      } = configs.active;
+      const { difficulty: difficultyList = [] } = this.deckMap[deckType]?.games[gameType]?.items[gameConfig] || {};
 
       this.$set(this, 'deckType', deckType);
       this.$set(this, 'gameType', gameType);
       this.$set(this, 'gameConfig', gameConfig);
+      
+      this.$set(this, 'difficultyList', difficultyList);
+      if (difficulty) this.$set(this, 'difficulty', difficulty);
 
       if (gameTimer) this.$set(this, 'gameTimer', gameTimer);
       if (gameRoundLimit) this.$set(this, 'gameRoundLimit', gameRoundLimit);
@@ -248,7 +297,15 @@ export default {
     selectGameConfig(type) {
       this.gameConfig = type;
 
-      const { teamsCount, playerCount, maxPlayersInGame } = this.gameConfigMap[type] || {};
+      const {
+        teamsCount,
+        playerCount,
+        maxPlayersInGame,
+        difficulty: difficultyList = [],
+      } = this.gameConfigMap[type] || {};
+
+      this.$set(this, 'difficultyList', difficultyList || []);
+      if (!this.difficulty) this.$set(this, 'difficulty', difficultyList[0].code);
 
       this.$set(this, 'teamsCount', { min: null, max: null, val: null });
       if (teamsCount && teamsCount.toString().includes('-')) {
@@ -303,7 +360,17 @@ export default {
       if (this.maxPlayersInGame.val < this.maxPlayersInGame.min) this.maxPlayersInGame.val = this.maxPlayersInGame.min;
     },
     async addGame() {
-      const { deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame, gameRoundLimit } = this;
+      const {
+        deckType,
+        gameType,
+        gameConfig,
+        gameTimer,
+        teamsCount,
+        playerCount,
+        maxPlayersInGame,
+        gameRoundLimit,
+        difficulty,
+      } = this;
       if (!deckType || !gameType || !gameConfig) prettyAlert({ message: 'game config not set' });
 
       await api.action
@@ -312,7 +379,17 @@ export default {
           args: [
             {
               lobbyGameConfigs: {
-                active: { deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame, gameRoundLimit },
+                active: {
+                  deckType,
+                  gameType,
+                  gameConfig,
+                  gameTimer,
+                  teamsCount,
+                  playerCount,
+                  maxPlayersInGame,
+                  gameRoundLimit,
+                  difficulty,
+                },
               },
             },
           ],
@@ -324,7 +401,19 @@ export default {
 
       window.iframeEvents.push({
         data: {
-          args: [{ deckType, gameType, gameConfig, gameTimer, teamsCount, playerCount, maxPlayersInGame, gameRoundLimit }],
+          args: [
+            {
+              deckType,
+              gameType,
+              gameConfig,
+              gameTimer,
+              teamsCount,
+              playerCount,
+              maxPlayersInGame,
+              gameRoundLimit,
+              difficulty,
+            },
+          ],
         },
         event: ({ args }) => {
           const $iframe = document.querySelector('#gameIframe');
@@ -352,12 +441,15 @@ export default {
     showTeam(gameId) {
       this.$set(this.showTeams, gameId, !this.showTeams[gameId]);
     },
+    updateDifficulty(event) {
+      this.difficulty = event.target.value;
+    },
   },
-  async created() { },
+  async created() {},
   async mounted() {
     this.prepareGameConfigs();
   },
-  async beforeDestroy() { },
+  async beforeDestroy() {},
 };
 </script>
 <style src="vue2-perfect-scrollbar/dist/vue2-perfect-scrollbar.css" />
@@ -477,7 +569,7 @@ export default {
         &.tutorial-active {
           box-shadow: none;
 
-          >svg {
+          > svg {
             box-shadow: 0 0 10px 10px #f4e205;
           }
         }
@@ -560,6 +652,16 @@ export default {
       &.tutorial-active {
         box-shadow: 0px 0px 20px 5px white;
       }
+    }
+
+    .select-input {
+      width: 150px;
+      color: #f4e205;
+      background: black;
+      border: 1px solid #f4e205;
+      text-align: center;
+      margin-top: 8px;
+      cursor: pointer;
     }
   }
 

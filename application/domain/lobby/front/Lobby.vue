@@ -359,9 +359,7 @@ export default {
     },
     hasUnreadMessages(count = 0) {
       if (this.unreadMessages === 0 && count > 0) {
-        prettyAlert({
-          message: 'У вас новое сообщение в чате',
-        });
+        prettyAlert({message: 'Новое сообщение в чате'});
       }
     },
   },
