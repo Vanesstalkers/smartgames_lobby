@@ -21,7 +21,7 @@
             icon: ['fas', 'users'],
             items: {
               default: {
-                title: 'Корпоративная игра'
+                title: 'Хакатон'
               }
             }
           }

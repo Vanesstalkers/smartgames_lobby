@@ -90,22 +90,57 @@
             <button class="select-btn active" @click="addGame()">Начать игру</button>
           </div>
         </div>
-        <div v-else class="flex-block">
-          <div class="timer">
-            <span class="controls">
-              <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
-              {{ gameTimer }}
-              <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameTimer(-15)" />
-            </span>
-            <span class="label"> секунд на ход</span>
+        <div v-else-if="maxPlayersInGame.val">
+          <div class="flex-block">
+            <div class="timer">
+              <span class="controls">
+                <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
+                {{ gameTimer }}
+                <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameTimer(-15)" />
+              </span>
+              <span class="label"> секунд на ход</span>
+            </div>
+            <div class="rounds">
+              <span class="controls">
+                <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameRoundLimit(1)" />
+                {{ gameRoundLimit }}
+                <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameRoundLimit(-1)" />
+              </span>
+              <span class="label"> лимит раундов на игру</span>
+            </div>
           </div>
-          <button class="select-btn active" @click="addGame()">Начать игру</button>
+          <div class="flex-block">
+            <div class="max-players">
+              <span class="controls">
+                <font-awesome-icon :icon="['fas', 'plus']" @click="updateMaxPlayersInGame(1)" />
+                {{ maxPlayersInGame.val }}
+                <font-awesome-icon :icon="['fas', 'minus']" @click="updateMaxPlayersInGame(-1)" />
+              </span>
+              <span class="label"> максимум игроков</span>
+            </div>
+            <button class="select-btn active" @click="addGame()">Начать игру</button>
+          </div>
         </div>
-        <div v-if="difficultyList.length" class="flex-block">
-          <span class="label">Уровень ИИ</span>
-          <select :value="difficulty" class="select-input" @change="updateDifficulty">
-            <option v-for="option in difficultyList" :key="option.code" :value="option.code">{{ option.title }}</option>
-          </select>
+        <div v-else class="flex-block wrap">
+          <div v-if="difficultyList.length" class="flex-block ai-config">
+            <span class="label">Уровень ИИ</span>
+            <select :value="difficulty" class="select-input" @change="updateDifficulty">
+              <option v-for="option in difficultyList" :key="option.code" :value="option.code">
+                {{ option.title }}
+              </option>
+            </select>
+          </div>
+          <div class="flex-block">
+            <div class="timer">
+              <span class="controls">
+                <font-awesome-icon :icon="['fas', 'plus']" @click="updateGameTimer(15)" />
+                {{ gameTimer }}
+                <font-awesome-icon :icon="['fas', 'minus']" @click="updateGameTimer(-15)" />
+              </span>
+              <span class="label"> секунд на ход</span>
+            </div>
+            <button class="select-btn active" @click="addGame()">Начать игру</button>
+          </div>
         </div>
       </div>
     </div>
@@ -204,7 +239,8 @@ export default {
           if (game.playerMap) {
             const players = Object.keys(game.playerMap).map((id) => game.store?.player[id] || {});
             const readyPlayers = players.filter((player) => player.ready);
-            game.joinedPlayers = readyPlayers.length + ' из ' + players.length;
+            game.readyPlayers = readyPlayers.length;
+            game.joinedPlayers = readyPlayers.length + ' из ' + (game.maxPlayersInGame || players.length);
             if (readyPlayers.length < players.length) waitForPlayer = true;
           }
           if (game.gamesMap) {
@@ -256,7 +292,7 @@ export default {
       this.$set(this, 'deckType', deckType);
       this.$set(this, 'gameType', gameType);
       this.$set(this, 'gameConfig', gameConfig);
-      
+
       this.$set(this, 'difficultyList', difficultyList);
       if (difficulty) this.$set(this, 'difficulty', difficulty);
 
@@ -305,7 +341,7 @@ export default {
       } = this.gameConfigMap[type] || {};
 
       this.$set(this, 'difficultyList', difficultyList || []);
-      if (!this.difficulty) this.$set(this, 'difficulty', difficultyList[0].code);
+      if (!this.difficulty && difficultyList.length) this.$set(this, 'difficulty', difficultyList[0].code);
 
       this.$set(this, 'teamsCount', { min: null, max: null, val: null });
       if (teamsCount && teamsCount.toString().includes('-')) {
@@ -585,6 +621,10 @@ export default {
         justify-content: center;
         align-items: center;
         white-space: nowrap;
+
+        &.wrap {
+          flex-wrap: wrap;
+        }
       }
     }
 
@@ -660,7 +700,7 @@ export default {
       background: black;
       border: 1px solid #f4e205;
       text-align: center;
-      margin-top: 8px;
+      margin: 8px;
       cursor: pointer;
     }
   }

@@ -16,6 +16,7 @@
         { text: 'Расскажи про бизнес-игры <a>для ИТ</a>', link: 'https://release.smartgames.studio/#/rules' },
         { text: 'Проведи <a>демонстрацию</a> игр <a>для ИТ</a>', action: 'changeTutorial', tutorial: 'lobby-tutorial-menuGameReleaseCorporate', step: 'initFromSales' },
         { text: 'Расскажи про бизнес-игры <a>для автодилеров</a>', link: 'https://auto.smartgames.studio/#/rules' },
+        { text: 'Проведи <a>демонстрацию</a> игр <a>для автобизнеса</a>', action: 'changeTutorial', tutorial: 'lobby-tutorial-menuGameAutoPoker', step: 'initFromSales' },
         { text: 'Назад', action: 'exit' },
       ],
     },

@@ -41,7 +41,7 @@
     },
     settings: {
       text: `
-        Это тип и основные настройки игры (время на ход, количество игроков и т.п.).
+        Это тип и основные настройки игры (время на ход, количество&nbsp;игроков&nbsp;и&nbsp;т.п.).
       `,
       actions: { before: async (data) => await data.utils.showGamesBlock(data) },
       active: [

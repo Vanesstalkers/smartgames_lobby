@@ -17,7 +17,7 @@
     });
     this.preventSaveFields(['chat']);
 
-    // !!! убрать после разработки соответствующих игр
+    // !!!! убрать после разработки соответствующих игр
     if (!this.gameServers.bank)
       this.set({ gameServers: { bank: { title: 'Банкинг', icon: ['fas', 'money-bill'], active: false } } });
   }
