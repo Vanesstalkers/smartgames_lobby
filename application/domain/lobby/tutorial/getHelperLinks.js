@@ -29,4 +29,16 @@
     simple: false,
     type: 'lobby',
   },
+  menuGameAuto: {
+    selector: '.menu-item-content.games .select-btn.game-auto',
+    tutorial: 'lobby-tutorial-menuGameAuto',
+    simple: false,
+    type: 'lobby',
+  },
+  menuGameAutoPoker: {
+    selector: '.menu-item-content.games .game-block.auto-game .select-btn.poker',
+    tutorial: 'lobby-tutorial-menuGameAutoPoker',
+    simple: false,
+    type: 'lobby',
+  },
 });

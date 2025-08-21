@@ -18,30 +18,26 @@
         В левом верхнем углу кнопка, которая включает <a>режим полного экрана</a>. Повторное нажатие на нее отключит этот режим.
       `,
       active: '.fullscreen-btn',
-      buttons: [
-        { text: 'Продолжай', step: 'games' }
-      ],
+      buttons: [{ text: 'Продолжай', step: 'games' }],
     },
     games: {
       text: `
-        В разделе ПРАВИЛА ИГР <a>список всех игр на портале</a>. Можно скачать <a>правила</a> в pdf-формате, а также посмотреть <a>все карты каждой колоды</a>.
+        В разделе ПРАВИЛА ИГР <a>список всех игр на портале</a>. Можно&nbsp;скачать&nbsp;<a>правила</a> в pdf-формате, а также посмотреть&nbsp;<a>все&nbsp;карты&nbsp;каждой&nbsp;колоды</a>.
       `,
       actions: {
         before: ({ $root }) => {
-          $root.querySelectorAll('.menu-item.pinned label').forEach($el => $el.click());
+          $root.querySelectorAll('.menu-item.pinned label').forEach(($el) => $el.click());
 
           const $item = $root.querySelector('.menu-item.list.pinned');
           if (!$item) $root.querySelector('.menu-item.list > label')?.click();
         },
       },
       pos: { desktop: 'bottom-left', mobile: 'bottom-right' },
-      buttons: [
-        { text: 'Дальше', step: 'rates' }
-      ],
+      buttons: [{ text: 'Дальше', step: 'rates' }],
     },
     rates: {
       text: `
-        В разделе ЗАЛ СЛАВЫ <a>рейтинги достижений всех игроков</a>. Там же ты найдешь и статистику по своим играм.
+        В разделе ЗАЛ СЛАВЫ <a>рейтинги достижений всех игроков</a>. Там&nbsp;же&nbsp;ты&nbsp;найдешь и статистику по своим играм.
       `,
       actions: {
         before: ({ $root }) => {
@@ -52,13 +48,11 @@
         },
       },
       pos: { desktop: 'bottom-left', mobile: 'bottom-right' },
-      buttons: [
-        { text: 'Дальше', step: 'chat' }
-      ],
+      buttons: [{ text: 'Дальше', step: 'chat' }],
     },
     chat: {
       text: `
-      ЧАТ ПОРТАЛА предназначен для общения игроков между собой и <a>поиска соперника</a>. В том числе есть возможность написать личное сообщение.
+      ЧАТ ПОРТАЛА предназначен для общения игроков между собой и&nbsp;<a>поиска соперника</a>. В том числе есть возможность написать&nbsp;личное&nbsp;сообщение.
       `,
       actions: {
         before: ({ $root }) => {
@@ -69,13 +63,11 @@
         },
       },
       pos: { desktop: 'bottom-right', mobile: 'bottom-right' },
-      buttons: [
-        { text: 'Дальше', step: 'playground' }
-      ],
+      buttons: [{ text: 'Дальше', step: 'playground' }],
     },
     playground: {
       text: `
-        В разделе ИГРОВАЯ КОМНАТА, ты можешь <a>начать новую партию в одиночном режиме или с соперниками</a>. Также присутствует режим наблюдателя, позволяющий наблюдать за чужими играми.
+        В разделе ИГРОВАЯ КОМНАТА, ты можешь <a>начать новую партию в&nbsp;одиночном режиме или с соперниками</a>. Также присутствует режим наблюдателя, позволяющий наблюдать за чужими играми.
       `,
       actions: {
         before: ({ $root }) => {
@@ -86,16 +78,15 @@
         },
       },
       pos: { desktop: 'bottom-right', mobile: 'bottom-right' },
-      buttons: [
-        { text: 'Дальше', step: 'exit' }
-      ],
+      buttons: [{ text: 'Дальше', step: 'exit' }],
     },
     exit: {
       superPos: true,
       showMenu: true,
       actions: {
-        profile: (data, self) => {
-          self.showProfile();
+        profile: (data) => {
+          data.actions.showProfile();
+          return { exit: true };
         },
       },
       active: '.helper-guru',

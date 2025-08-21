@@ -7,8 +7,8 @@
       if ($breadcrumbs) $breadcrumbs.click();
 
       await new Promise(resolve => setTimeout(resolve, 0)); // ждем отрисовки фронтенда
-      const $releaseBtn = $root.querySelector('.select-btn.game-release');
-      if ($releaseBtn) $releaseBtn.click();
+      const $btn = $root.querySelector('.select-btn.game-release');
+      if ($btn) $btn.click();
       await new Promise(resolve => setTimeout(resolve, 0)); // ждем отрисовки фронтенда
     },
     async transferToConfigBlock(data) {
@@ -27,7 +27,7 @@
     }
   },
   steps: {
-    release: {
+    deck: {
       initialStep: true,
       text: `
         Колода бизнес-карт РЕЛИЗ позволяет проводить <a>симуляции процессов ИТ-разработки</a>. Доступны несколько типов игр, включая одиночный и командный.
@@ -43,9 +43,9 @@
         Варианты игры:
         
         ФРИЛАНС - <a>игра для одного игрока</a>
-        ДУЭЛЬ - <a>игра на двоих друг против друга</a>
+        ДУЭЛЬ - <a>игра для двоих друг против друга</a>
         КАЖДЫЙ ЗА СЕБЯ - <a>игра для 3-х игроков</a>
-        КОРПОРАТИВНЫЕ ПРОЕКТЫ - <a>формат корпоративной игры</a>
+        <span style="color: white; font-weight: bold;">ХАКАТОН - <a>формат корпоративной игры</a></span>
       `,
       actions: { before: async (data) => await data.utils.transferToGameTypeBlock(data) },
       active: '.release-game .select-btn:not(.disabled)',
@@ -67,7 +67,7 @@
     },
     time: {
       text: `
-        На сложность игры так же влияет <a>значение таймера, доступного на ход</a>.
+        На сложность игры так же влияет <a>значение&nbsp;таймера,&nbsp;доступного&nbsp;на&nbsp;ход</a>.
       `,
       actions: { before: async (data) => await data.utils.transferToSettingsBlock(data) },
       active: { selector: '.game-start-block .timer', css: { boxShadow: '0 0 20px 10px white', padding: '4px 10px' } },

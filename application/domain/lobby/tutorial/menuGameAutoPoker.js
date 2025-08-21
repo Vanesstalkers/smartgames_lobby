@@ -15,25 +15,26 @@
       if ($breadcrumbs) $breadcrumbs.click();
       await new Promise(resolve => setTimeout(resolve, 0)); // ждем отрисовки фронтенда
 
-      const $btn = $root.querySelector('.select-btn.game-release');
+      const $btn = $root.querySelector('.select-btn.game-auto');
       if ($btn) $btn.click();
       await new Promise(resolve => setTimeout(resolve, 0)); // ждем отрисовки фронтенда
 
-      $root.querySelector('.menu-item-content.games .game-block.release-game .select-btn.corporate').click();
+      $root.querySelector('.menu-item-content.games .game-block.auto-game .select-btn.poker').click();
       await new Promise(resolve => setTimeout(resolve, 0)); // ждем отрисовки фронтенда (для подсветки active-элементов)
     },
     async transferToSettingsBlock(data) {
       const { $root, utils } = data; // в аргументах функции строго data, чтобы фронт корректно восстановил функцию из строки
       await utils.transferToConfigBlock(data);
 
-      $root.querySelector('.game-config-block.release-game-config .competition').click();
+      const $btn = $root.querySelector('.game-config-block.auto-game-config .default');
+      if ($btn) $btn.click(); // может не быть, так как для единственного конфига происходит автовыбор
       await new Promise(resolve => setTimeout(resolve, 0)); // ждем отрисовки фронтенда (для подсветки active-элементов)
     }
   },
   steps: {
     initFromSales: {
       text: `
-        Чтобы попасть в копроративный режим игры необходимо в ИГРОВОЙ КОМНАТЕ последовательно выбрать <a>РЕЛИЗ -> Хакатон</a>.  
+        Чтобы попасть в копроративный режим игры необходимо в&nbsp;ИГРОВОЙ&nbsp;КОМНАТЕ последовательно выбрать <a>Автобизнес&nbsp;>&nbsp;Бизнес-покер</a>.  
       `,
       actions: { before: async (data) => await data.utils.transferToConfigBlock(data) },
       active: { selector: '.breadcrumbs', css: { boxShadow: 'inset 0 0 20px 10px white', padding: '30px 0px' } },
@@ -44,13 +45,11 @@
     corporate: {
       initialStep: true,
       text: `
-        Данный режим предназначен для корпоративных игр и он представлен в двух форматах:
-
-        СОРЕВНОВАНИЕ - <a>нескольких команд борются за победу</a>
-        КООПЕРАЦИЯ - <a>игроки, разбитых на несколько групп, достигают общей цели</a>
+        Данный режим предназначен проведения тимбилдинга в формате карточной игры, напоминающей покер.
+        Для получения практики в определении выигрышных комбинаций рекомендуется предварительно сыграть несколько игр против компьютера (<a>Автобизнес -> Авто-продажи -> Один игрок</a>).
       `,
       actions: { before: async (data) => await data.utils.transferToConfigBlock(data) },
-      active: '.game-config-block.release-game-config .select-btn',
+      active: '.game-config-block.auto-game-config .select-btn',
       buttons: [
         { text: 'Продолжай', step: 'timer' },
         { text: 'Я разберусь', action: 'exit' }
@@ -68,7 +67,7 @@
     },
     rounds: {
       text: `
-        Через установленное количество раундов игра прекратится и все участники будут признаны проигравшими.
+        Через установленное количество раундов игра прекратится и <a>победителем станет игрок с наибольшим количеством денег</a>.
       `,
       actions: { before: async (data) => await data.utils.transferToSettingsBlock(data) },
       active: { selector: '.game-start-block .rounds', css: { boxShadow: '0 0 20px 10px white', padding: '4px 10px' } },
@@ -78,10 +77,10 @@
     },
     teams: {
       text: `
-        Обязательно необходимо указать количество команд, которые будут участвовать в игре.
+        Игра начнется как только к ней подключаятся два игрока, однако <a>в&nbsp;процессе игры могут подключаться новые игроки</a>. Их&nbsp;количество ограничивается данной настройкой.
       `,
       actions: { before: async (data) => await data.utils.transferToSettingsBlock(data) },
-      active: { selector: '.game-start-block .teams', css: { boxShadow: '0 0 20px 10px white', padding: '4px 10px' } },
+      active: { selector: '.game-start-block .max-players', css: { boxShadow: '0 0 20px 10px white', padding: '4px 10px' } },
       buttons: [
         { text: 'Дальше', step: 'exit' }
       ],
