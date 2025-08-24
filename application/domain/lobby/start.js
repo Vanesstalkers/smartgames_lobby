@@ -25,6 +25,9 @@ async () => {
       } catch (err) {
         console.log(err);
       }
+
+      return; // отключил до отладки
+
       const TelegramBot = npm['node-telegram-bot-api'];
       const bot = new TelegramBot(config.telegram.botToken, { polling: true });
       await bot
