@@ -121,6 +121,17 @@
 
     <profile v-if="profileActive" :closeProfile="closeProfile" :userData="userData" />
 
+    <!-- Галерея карт -->
+    <div v-if="galleryVisible" ref="viewerContainer">
+      <img 
+        v-for="(image, index) in galleryImages" 
+        :key="index"
+        :src="image" 
+        :data-src="image"
+        style="display: none;"
+      />
+    </div>
+
     <div class="main-logo">
       <div class="contact-icons-wrapper">
         <a href="https://t.me/smartgamesstudio" target="_black" class="telegram-link"> </a>
@@ -155,6 +166,8 @@ import rankings from './components/rankings.vue';
 import rules from './components/rules.vue';
 import profile from './components/profile.vue';
 import chat from '~/lib/chat/front/chat.vue';
+import Viewer from 'viewerjs';
+import 'viewerjs/dist/viewer.css';
 
 export default {
   components: {
@@ -187,6 +200,29 @@ export default {
       pinned: { chat: false, list: false, top: false, game: false, info: false },
       iframeScr: '',
       showLoginForm: false,
+      // Данные для галереи
+      galleryImages: [],
+      galleryOriginalImages: [], // Оригинальные данные с сервера
+      galleryVisible: false,
+      viewerInstance: null,
+      priceFilter: '', // Фильтр по цене
+      viewerOptions: {
+        inline: false,
+        // button: true,
+        navbar: true,
+        title: false,
+        toolbar: true,
+        tooltip: true,
+        movable: true,
+        zoomable: true,
+        rotatable: false,
+        scalable: true,
+        transition: true,
+        fullscreen: true,
+        keyboard: true,
+        backdrop: true,
+        zIndex: 10001
+      },
     };
   },
   watch: {
@@ -401,6 +437,190 @@ export default {
       }
     },
 
+    // Методы для работы с галереей
+    showGallery(images, serverOrigin) {
+      // Сохраняем оригинальные данные с сервера
+      this.galleryOriginalImages = images.map((img) => ({
+        url: `${serverOrigin}/img/cards/${typeof img === 'string' ? img : img.path}`,
+        price: img.price || 0, // Предполагаем, что у карт есть атрибут price
+        originalData: img
+      }));
+      
+      // Применяем фильтр
+      this.applyFilter();
+      
+      // Показываем галерею
+      this.galleryVisible = true;
+      
+      // Ждем рендеринга и инициализируем viewer
+      this.$nextTick(() => {
+        this.initViewer();
+      });
+    },
+
+    filterByPrice() {
+      // Фильтрация только после ввода 4-го символа
+      if (this.priceFilter.length >= 4) {
+        this.applyFilter();
+        // Переинициализируем viewer с отфильтрованными изображениями
+        this.$nextTick(() => {
+          this.initViewer();
+        });
+      } else if (this.priceFilter.length === 0) {
+        // Если поле пустое, показываем все изображения
+        this.applyFilter();
+        this.$nextTick(() => {
+          this.initViewer();
+        });
+      }
+    },
+
+    applyFilter() {
+      if (!this.priceFilter || this.priceFilter === '' || this.priceFilter.length < 4) {
+        // Если фильтр пустой или меньше 4 символов, показываем все изображения
+        this.galleryImages = this.galleryOriginalImages.map(img => img.url);
+      } else {
+        // Фильтруем по цене только если введено 4+ символов
+        const filterPrice = parseFloat(this.priceFilter);
+        this.galleryImages = this.galleryOriginalImages
+          .filter(img => img.price <= filterPrice)
+          .map(img => img.url)
+          .reverse();
+      }
+    },
+
+    initViewer() {
+      if (this.$refs.viewerContainer) {
+        // Уничтожаем предыдущий viewer если есть
+        if (this.viewerInstance) {
+          this.viewerInstance.destroy();
+        }
+        
+        // Создаем новый viewer
+        this.viewerInstance = new Viewer(this.$refs.viewerContainer, this.viewerOptions);
+        
+        // Добавляем кастомный input в toolbar после инициализации
+        this.$nextTick(() => {
+          this.addCustomToolbarInput();
+        });
+        
+        this.viewerInstance.show();
+      }
+    },
+
+    addCustomToolbarInput() {
+      if (!this.viewerInstance) return;
+      
+      // Находим toolbar
+      const toolbar = document.querySelector('.viewer-toolbar');
+      if (!toolbar) return;
+      
+      // Удаляем предыдущий input если есть
+      const existingInput = toolbar.querySelector('.custom-price-filter');
+      if (existingInput) {
+        existingInput.remove();
+      }
+      
+      // Создаем контейнер для input
+      const inputContainer = document.createElement('div');
+      inputContainer.className = 'custom-price-filter';
+      inputContainer.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 10px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        margin: auto;
+        margin-bottom: 20px;
+        width: 150px;
+      `;
+      
+      // Создаем input
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.placeholder = 'Цена ≤ (мин. 4 цифры)';
+      input.value = this.priceFilter;
+      input.className = 'toolbar-price-input';
+      input.style.cssText = `
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        padding: 4px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+        width: 80px;
+        text-align: center;
+        color: #333;
+        margin: auto;
+        width: 130px;
+      `;
+      
+      // // Создаем счетчик
+      // const counter = document.createElement('span');
+      // counter.className = 'toolbar-counter';
+      // counter.style.cssText = `
+      //   color: white;
+      //   font-size: 11px;
+      //   font-weight: 500;
+      //   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      // `;
+      // counter.textContent = `${this.galleryImages.length}`;
+      
+      // Добавляем элементы в контейнер
+      inputContainer.appendChild(input);
+      // inputContainer.appendChild(counter);
+      
+      // Добавляем контейнер в toolbar
+      toolbar.appendChild(inputContainer);
+      
+      // Добавляем обработчик событий
+      input.addEventListener('input', (e) => {
+        this.priceFilter = e.target.value;
+        this.filterByPrice();
+        
+        // // Обновляем счетчик с индикацией статуса фильтра
+        // if (this.priceFilter.length >= 4) {
+        //   counter.textContent = `Найдено: ${this.galleryImages.length}`;
+        //   counter.style.color = '#4CAF50'; // Зеленый для активного фильтра
+        // } else if (this.priceFilter.length > 0) {
+        //   counter.textContent = `Введите еще ${4 - this.priceFilter.length} цифр`;
+        //   counter.style.color = '#FF9800'; // Оранжевый для неполного ввода
+        // } else {
+        //   counter.textContent = `Всего: ${this.galleryImages.length}`;
+        //   counter.style.color = 'white'; // Белый для отсутствия фильтра
+        // }
+      });
+      
+      // Добавляем стили для фокуса
+      input.addEventListener('focus', () => {
+        input.style.background = 'rgba(255, 255, 255, 1)';
+        input.style.boxShadow = '0 0 0 2px #007bff';
+      });
+      
+      input.addEventListener('blur', () => {
+        input.style.background = 'rgba(255, 255, 255, 0.9)';
+        input.style.boxShadow = 'none';
+      });
+    },
+
+    closeGallery() {
+      if (this.viewerInstance) {
+        this.viewerInstance.destroy();
+        this.viewerInstance = null;
+      }
+      this.galleryVisible = false;
+      this.galleryImages = [];
+      this.galleryOriginalImages = [];
+      this.priceFilter = '';
+    },
+
+    // Метод для обновления галереи (вызывается из rules.vue)
+    updateGallery(images, serverOrigin) {
+      console.log('updateGallery', images, serverOrigin);
+      this.showGallery(images, serverOrigin);
+    },
+
     customMenu() {
       const menuWrapper = tutorial.menuWrapper(this.userData);
       const menuButtonsMap = tutorial.menuButtonsMap(this.tutorialActions);
@@ -486,6 +706,12 @@ export default {
   async beforeDestroy() {
     removeEvents();
     this.$set(this.$root.state, 'viewLoaded', false);
+    
+    // Очищаем viewer
+    if (this.viewerInstance) {
+      this.viewerInstance.destroy();
+      this.viewerInstance = null;
+    }
 
     return; // при входе в игру не выходим из лобби
 
@@ -1117,5 +1343,66 @@ $textshadow: rgb(42, 22, 23);
       }
     }
   }
+}
+
+/* Стили для галереи */
+.gallery-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.9);
+}
+
+/* Стили для v-viewer */
+.viewer-container {
+  z-index: 10001 !important;
+}
+
+/* Стили для кастомного input в toolbar */
+.custom-price-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 10px;
+  padding: 5px 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.toolbar-price-input {
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  width: 80px;
+  text-align: center;
+  color: #333;
+}
+
+.toolbar-price-input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 0 2px #007bff;
+}
+
+.toolbar-counter {
+  color: white;
+  font-size: 11px;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Простое исправление - убираем aria-hidden с toolbar */
+.viewer-toolbar {
+  pointer-events: auto;
+}
+
+.custom-price-filter {
+  pointer-events: auto;
 }
 </style>

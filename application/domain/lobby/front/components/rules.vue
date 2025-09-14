@@ -8,9 +8,7 @@
           <ul>
             <li>
               <label>
-                <a :href="lobby.gameServers.release?.serverUrl + '/rules/deck.pdf'" target="_blank">
-                  Правила игры
-                </a>
+                <a :href="lobby.gameServers.release?.serverUrl + '/rules/deck.pdf'" target="_blank"> Правила игры </a>
               </label>
               <hr />
               <span class="gallery" v-on:click="showGallery('release')">Список карт</span>
@@ -23,19 +21,22 @@
           <ul v-if="lobby.gameServers.auto?.serverUrl">
             <li>
               <label>
-                <a :href="lobby.gameServers.auto?.serverUrl + '/rules/deck.pdf'" target="_blank">
-                  Описание колоды
-                </a>
+                <a :href="lobby.gameServers.auto?.serverUrl + '/rules/deck.pdf'" target="_blank"> Описание колоды </a>
               </label>
               <hr />
-              <span v-for="(item, index) in [
-                { type: 'car', text: 'Карты авто' },
-                { type: 'service', text: 'Карты сервисов' },
-                { type: 'client', text: 'Карты клиентов' },
-                { type: 'feature', text: 'Карты особенностей' },
-                { type: 'credit', text: 'Карты кредитов' }
-              ]" :key="index" class="gallery" v-on:click="showGallery('auto', item.type)">{{ item.text
-              }}</span><br />
+              <span
+                v-for="(item, index) in [
+                  { type: 'car', text: 'Карты авто' },
+                  { type: 'service', text: 'Карты сервисов' },
+                  { type: 'client', text: 'Карты клиентов' },
+                  { type: 'feature', text: 'Карты особенностей' },
+                  { type: 'credit', text: 'Карты кредитов' },
+                ]"
+                :key="index"
+                class="gallery"
+                v-on:click="showGallery('auto', item.type)"
+                >{{ item.text }}</span
+              ><br />
             </li>
             <li>
               <label>
@@ -66,33 +67,32 @@
           <ul>
             <li>
               <label>
-                <a :href="state.serverOrigin + '/pdf/rules/bank-deck.pdf'" target="_blank">
-                  Правила игры
-                </a>
+                <a :href="state.serverOrigin + '/pdf/rules/bank-deck.pdf'" target="_blank"> Правила игры </a>
               </label>
 
               <hr />
-              <span v-for="(item, index) in [
-                { type: 'product', text: 'Карты продуктов' },
-                { type: 'service', text: 'Карты сервисов' },
-                { type: 'scoring', text: 'Карты скоринга' },
-                { type: 'client', text: 'Карты клиентов' },
-                { type: 'feature', text: 'Карты особенностей' }
-              ]" :key="index" class="gallery" v-on:click="showGallery('bank', item.type)">{{ item.text
-              }}</span><br />
+              <span
+                v-for="(item, index) in [
+                  { type: 'product', text: 'Карты продуктов' },
+                  { type: 'service', text: 'Карты сервисов' },
+                  { type: 'scoring', text: 'Карты скоринга' },
+                  { type: 'client', text: 'Карты клиентов' },
+                  { type: 'feature', text: 'Карты особенностей' },
+                ]"
+                :key="index"
+                class="gallery"
+                v-on:click="showGallery('bank', item.type)"
+                >{{ item.text }}</span
+              ><br />
             </li>
             <li>
               <label>
-                <a :href="state.serverOrigin + '/pdf/rules/bank-sales.pdf'" target="_blank">
-                  Игра "Банк-продаж"
-                </a>
+                <a :href="state.serverOrigin + '/pdf/rules/bank-sales.pdf'" target="_blank"> Игра "Банк-продаж" </a>
               </label>
             </li>
             <li>
               <label>
-                <a :href="state.serverOrigin + '/pdf/rules/bank-risks.pdf'" target="_blank">
-                  Игра "Банк-рисков"
-                </a>
+                <a :href="state.serverOrigin + '/pdf/rules/bank-risks.pdf'" target="_blank"> Игра "Банк-рисков" </a>
               </label>
             </li>
           </ul>
@@ -104,8 +104,6 @@
 
 <script>
 import { PerfectScrollbar } from 'vue2-perfect-scrollbar';
-import { Fancybox } from '@fancyapps/ui';
-import '@fancyapps/ui/dist/fancybox/fancybox.css';
 
 export default {
   components: {
@@ -129,68 +127,35 @@ export default {
   },
   methods: {
     async showGallery(deck, group) {
-      const { serverUrl } = this.lobby.gameServers[deck] || {};
-      let serverOrigin;
-      let images = [];
-      if (serverUrl) {
-        serverOrigin = serverUrl;
+      const { serverUrl: serverOrigin } = this.lobby.gameServers[deck] || {};
 
-        const method = 'POST';
-        const headers = { 'Content-Type': 'application/json' };
-        const body = JSON.stringify({ path: 'game.api.cards', args: [{ selectGroup: group }] });
-        images = await fetch(serverOrigin + '/api/action/public', { method, headers, body }).then((res) =>
-          res.text().then((packet) => {
-            const {
-              result: { cards },
-            } = JSON.parse(packet);
-            return cards;
-          })
-        );
-      } else {
-        serverOrigin = this.state.serverOrigin;
-        switch (deck) {
-          case 'bank':
-            switch (group) {
-              case 'product':
-                for (let i = 1; i <= 32; i++) images.push(`bank/product/product${i}.png`);
-                break;
-              case 'service':
-                for (let i = 1; i <= 32; i++) images.push(`bank/service/service${i}.png`);
-                break;
-              case 'client':
-                for (let i = 1; i <= 24; i++) images.push(`bank/client/client${i}.png`);
-                break;
-              case 'feature':
-                for (let i = 1; i <= 24; i++) images.push(`bank/spec/spec${i}.png`);
-                break;
-              case 'scoring':
-                for (let i = 1; i <= 6; i++) images.push(`bank/scoring/scoring${i}.png`);
-                break;
-            }
-            break;
-        }
-      }
-
-      new Fancybox(
-        images.map((path) => ({
-          src: `${serverOrigin}/img/cards/${path}`,
-          type: 'image',
-        }))
+      const method = 'POST';
+      const headers = { 'Content-Type': 'application/json' };
+      const body = JSON.stringify({ path: 'game.api.cards', args: [{ selectGroup: group }] });
+      const images = await fetch(serverOrigin + '/api/action/public', { method, headers, body }).then((res) =>
+        res.text().then((packet) => {
+          const {
+            result: { cards },
+          } = JSON.parse(packet);
+          return cards;
+        })
       );
+
+      this.$parent.updateGallery(images, serverOrigin);
     },
   },
-  async created() { },
-  async mounted() { },
-  async beforeDestroy() { },
+  async created() {},
+  async mounted() {},
+  async beforeDestroy() {},
 };
 </script>
 <style src="vue2-perfect-scrollbar/dist/vue2-perfect-scrollbar.css" />
 <style scoped lang="scss">
 .rules {
   label {
-    >a:after {
+    > a:after {
       position: absolute;
-      content: "";
+      content: '';
       width: 16px;
       height: 16px;
       background-color: white;
@@ -218,7 +183,7 @@ export default {
 
     &:after {
       position: absolute;
-      content: "";
+      content: '';
       width: 16px;
       height: 16px;
       background-color: white;
@@ -240,6 +205,5 @@ export default {
       }
     }
   }
-
 }
 </style>
