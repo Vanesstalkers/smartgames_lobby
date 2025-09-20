@@ -104,6 +104,7 @@
 
 <script>
 import { PerfectScrollbar } from 'vue2-perfect-scrollbar';
+import { FILTER_CONFIGS } from './gallery-filters-config.js';
 
 export default {
   components: {
@@ -126,6 +127,12 @@ export default {
     },
   },
   methods: {
+    // Получение конфигурации фильтров
+    getFilterConfig(deck, group) {
+      const key = group ? `${deck}.${group}` : deck;
+      return FILTER_CONFIGS[key] || { filters: [] };
+    },
+
     async showGallery(deck, group) {
       const { serverUrl: serverOrigin } = this.lobby.gameServers[deck] || {};
 
@@ -141,7 +148,10 @@ export default {
         })
       );
 
-      this.$parent.updateGallery(images, serverOrigin);
+      // Получаем конфигурацию фильтров для данного deck.group
+      const filterConfig = this.getFilterConfig(deck, group);
+      
+      this.$parent.updateGallery(images, serverOrigin, filterConfig);
     },
   },
   async created() {},
