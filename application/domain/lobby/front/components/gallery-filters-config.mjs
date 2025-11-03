@@ -36,7 +36,6 @@ export const FILTER_CONFIGS = {
           { value: '2', text: '★★', color: '#ffcc00' },
           { value: '3', text: '★★★', color: '#ffcc00' },
           { value: '4', text: '★★★★', color: '#ffcc00' },
-          { value: '5', text: '★★★★★', color: '#ffcc00' },
         ],
         filterFunction: (items, value) => {
           if (!value) return items;
@@ -70,13 +69,31 @@ export const FILTER_CONFIGS = {
     filters: [
       {
         type: FILTER_TYPES.PRICE,
-        label: 'Стоимость ≤',
+        label: 'Доходность ≤',
         inputType: 'number',
         width: '100px',
         minLength: 1,
         filterFunction: (items, value) => {
+          if (!value) return items;
           const filterPrice = parseFloat(value);
           return items.filter((img) => (img.cost || img.price || 0) <= filterPrice);
+        }
+      },
+      {
+        type: FILTER_TYPES.STARS,
+        label: 'Звезды',
+        inputType: 'select',
+        width: '90px',
+        options: [
+          { value: '', text: '★ - все', color: '#000000' },
+          { value: '0', text: 'Без звезд', color: '#ffcc00' },
+          { value: '1', text: '★', color: '#ffcc00' },
+          { value: '2', text: '★★', color: '#ffcc00' },
+        ],
+        filterFunction: (items, value) => {
+          if (!value) return items;
+          const filterStars = parseInt(value);
+          return items.filter((img) => (img.stars || 0) === filterStars);
         }
       },
       {
@@ -86,14 +103,14 @@ export const FILTER_CONFIGS = {
         width: '120px',
         options: [
           { value: '', text: 'Все категории', color: '#ffffff' },
-          { value: 'deposit', text: 'Депозиты', color: '#28a745' },
-          { value: 'credit', text: 'Кредиты', color: '#dc3545' },
-          { value: 'card', text: 'Карты', color: '#007bff' },
-          { value: 'insurance', text: 'Страхование', color: '#6f42c1' },
+          { value: ['deposit'], text: 'Депозиты', color: '#28a745' },
+          { value: ['credit', 'autocredit', 'mortgage'], text: 'Кредиты', color: '#dc3545' },
+          { value: ['creditcard', 'bankcard'], text: 'Карты', color: '#007bff' },
+          { value: ['safebox', 'exchange'], text: 'Операции', color: '#6f42c1' },
         ],
         filterFunction: (items, value) => {
           if (!value) return items;
-          return items.filter((img) => img.category === value);
+          return items.filter((img) => value.includes(img.group));
         }
       }
     ]

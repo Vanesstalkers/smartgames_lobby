@@ -16,7 +16,7 @@
           </ul>
         </li>
         <li class="disabled">
-          <label>Автобизнес</label>
+          <label class="not-disabled">Автобизнес</label>
           <div>Колода для игр про продажи автомобилей</div>
           <ul v-if="lobby.gameServers.auto?.serverUrl">
             <li>
@@ -62,7 +62,7 @@
           </ul>
         </li>
         <li class="disabled">
-          <label>Банкинг</label>
+          <label class="not-disabled">Банкинг</label>
           <div>Колода для игр про работу в банках</div>
           <ul>
             <li>
