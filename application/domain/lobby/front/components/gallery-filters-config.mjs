@@ -2,7 +2,7 @@
 
 export const FILTER_TYPES = {
   PRICE: 'price',
-  STARS: 'stars', 
+  STARS: 'stars',
   PRICE_GROUP: 'priceGroup',
   RARITY: 'rarity',
   CATEGORY: 'category',
@@ -16,13 +16,13 @@ export const FILTER_CONFIGS = {
     filters: [
       {
         type: FILTER_TYPES.PRICE,
-        label: 'Цена ≤ (мин. 4 цифры)',
+        label: 'Цена ≤ (4 цифры)',
         inputType: 'number',
         width: '130px',
         minLength: 4,
         filterFunction: (items, value) => {
           const filterPrice = parseFloat(value);
-          return items.filter(img => img.price <= filterPrice);
+          return items.filter((img) => img.price <= filterPrice);
         }
       },
       {
@@ -41,7 +41,7 @@ export const FILTER_CONFIGS = {
         filterFunction: (items, value) => {
           if (!value) return items;
           const filterStars = parseInt(value);
-          return items.filter(img => img.stars === filterStars);
+          return items.filter((img) => img.stars === filterStars);
         }
       },
       {
@@ -59,7 +59,7 @@ export const FILTER_CONFIGS = {
         ],
         filterFunction: (items, value) => {
           if (!value) return items;
-          return items.filter(img => img.priceGroup && img.priceGroup.includes(value));
+          return items.filter((img) => img.priceGroup && img.priceGroup.includes(value));
         }
       }
     ]
@@ -76,7 +76,7 @@ export const FILTER_CONFIGS = {
         minLength: 1,
         filterFunction: (items, value) => {
           const filterPrice = parseFloat(value);
-          return items.filter(img => (img.cost || img.price || 0) <= filterPrice);
+          return items.filter((img) => (img.cost || img.price || 0) <= filterPrice);
         }
       },
       {
@@ -93,7 +93,7 @@ export const FILTER_CONFIGS = {
         ],
         filterFunction: (items, value) => {
           if (!value) return items;
-          return items.filter(img => img.category === value);
+          return items.filter((img) => img.category === value);
         }
       }
     ]

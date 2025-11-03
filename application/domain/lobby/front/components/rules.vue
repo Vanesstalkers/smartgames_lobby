@@ -104,7 +104,7 @@
 
 <script>
 import { PerfectScrollbar } from 'vue2-perfect-scrollbar';
-import { FILTER_CONFIGS } from './gallery-filters-config.js';
+import { FILTER_CONFIGS } from './gallery-filters-config.mjs';
 
 export default {
   components: {

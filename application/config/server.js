@@ -1,8 +1,8 @@
 ({
   host: '0.0.0.0',
-  balancer: 8800,
+  // balancer: 8800,
   protocol: 'http',
-  ports: [8801/* , 8802, 8803, 8804 */],
+  ports: [8800/* , 8802, 8803, 8804 */],
   nagle: false,
   timeouts: {
     bind: 2000,
@@ -10,6 +10,7 @@
     stop: 5000,
     request: 5000,
     watch: 1000,
+    test: 60000,
   },
   queue: {
     concurrency: 1000,
@@ -22,7 +23,7 @@
     timeout: 3000,
   },
   workers: {
-    pool: 2,
+    pool: 0,
     wait: 2000,
     timeout: 5000,
   },
