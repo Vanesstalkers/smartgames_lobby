@@ -1,169 +1,188 @@
 <template>
-  <div
-    v-if="lobbyDataLoaded"
-    id="lobby"
-    :class="[
-      gameRestoreProcess ? 'game-restore-process-active' : '',
-      state.isMobile ? 'mobile-view' : '',
-      state.isLandscape ? 'landscape-view' : 'portrait-view',
-      !state.currentUser ? 'need-auth' : '',
-      isMobilePinned ? 'mobile-pinned' : '',
-    ]"
-  >
-    <iframe v-if="iframeScr" :src="iframeScr" :id="`gameIframe`" allowfullscreen></iframe>
+  <div>
+    <auth-form
+      v-if="!state.currentUser"
+      :on-success="handleAuthSuccess"
+      :on-error="handleAuthError"
+      :call-lobby-enter="callLobbyEnter"
+    />
 
-    <div v-if="!state.currentUser" class="auth">
-      <div class="form">
-        <h3>Вход в лобби</h3>
-        <button class="new" v-on:click="createDemoUser">Войти как гость</button>
-        <button v-if="!showLoginForm" class="link" v-on:click="showLoginForm = true">Войти с паролем</button>
-        <template v-else>
-          <div class="inputs">
-            <input v-model="auth.login" name="login" placeholder="логин" />
-            <span :style="{ width: '10px' }"></span>
-            <input v-model="auth.password" name="password" placeholder="пароль" />
-          </div>
-          <button v-on:click="login">Авторизоваться</button>
-        </template>
-        <div v-if="auth.err" class="err">{{ auth.err }}</div>
-        <br />
-        <button
-          class="link"
-          style="color: white"
-          v-on:click="createDemoUser({ tutorial: { tutorial: 'lobby-tutorial-sales', step: 'teambuilding' } })"
+    <div
+      v-if="lobbyDataLoaded"
+      id="lobby"
+      :class="[
+        gameRestoreProcess ? 'game-restore-process-active' : '',
+        state.isMobile ? 'mobile-view' : '',
+        state.isLandscape ? 'landscape-view' : 'portrait-view',
+        !state.currentUser ? 'need-auth' : '',
+        isMobilePinned ? 'mobile-pinned' : '',
+      ]"
+    >
+      <iframe
+        v-if="iframeScr"
+        :src="iframeScr"
+        :id="`gameIframe`"
+        allowfullscreen
+      ></iframe>
+
+      <tutorial
+        class="scroll-off"
+        :customMenu="customMenu()"
+        :injectedActions="{
+          showProfile: () => {
+            this.showProfile();
+          },
+        }"
+      />
+
+      <div class="menu-item-list">
+        <div :class="['menu-item', pinned.game ? 'pinned' : '', 'game']">
+          <label v-on:click="pinMenuItem('game')">
+            ИГРОВАЯ КОМНАТА
+            <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
+          </label>
+          <games class="menu-item-content" :showGameIframe="showGameIframe" />
+        </div>
+        <div :class="['menu-item', pinned.list ? 'pinned' : '', 'list']">
+          <label v-on:click="pinMenuItem('list')">
+            ПРАВИЛА ИГР
+            <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
+          </label>
+          <rules class="menu-item-content" />
+        </div>
+        <div :class="['menu-item', pinned.chat ? 'pinned' : '', 'chat']">
+          <label v-on:click="pinMenuItem('chat')">
+            ОБЩЕНИЕ
+            <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
+            <small v-if="unreadMessages > 0">есть новые сообщения</small>
+          </label>
+          <chat
+            class="menu-item-content"
+            :defActiveChannel="`lobby-${state.currentLobby}`"
+            :userData="userData"
+            :isVisible="pinned.chat"
+            :hasUnreadMessages="hasUnreadMessages"
+            :channels="chatChannels"
+          />
+        </div>
+        <div :class="['menu-item', pinned.top ? 'pinned' : '', 'top']">
+          <label v-on:click="pinMenuItem('top')">
+            ЗАЛ СЛАВЫ
+            <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
+          </label>
+          <rankings class="menu-item-content" :games="lobby.rankings" />
+        </div>
+        <div
+          :class="[
+            'menu-item',
+            pinned.info ? 'pinned' : '',
+            'info',
+            !state.isMobile && pinned.info === null ? 'preview' : '',
+          ]"
         >
-          Меня интересуют корпоративные игры
-        </button>
+          <label v-on:click="pinMenuItem('info')">
+            УСЛУГИ СТУДИИ
+            <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
+          </label>
+
+          <perfect-scrollbar class="menu-item-content">
+            <ul>
+              <li>
+                <label v-on:click.stop="showInfo('teambuilding')"
+                  >Корпоративные тимбилдинги</label
+                >
+                <div>В том числе в онлайн формате</div>
+              </li>
+              <li>
+                <label v-on:click.stop="showInfo('delivery')"
+                  >Продажа настольных игр</label
+                >
+                <div>В любом количестве с доставкой до офиса</div>
+              </li>
+              <li>
+                <label v-on:click.stop="showInfo('games')"
+                  >Разработка игр на заказ</label
+                >
+                <div>Настольные обучающие игры для любой сферы бизнеса</div>
+              </li>
+              <li>
+                <label v-on:click.stop="showInfo('it')"
+                  >Создание онлайн-версий игр</label
+                >
+                <div>Собственная команда программистов</div>
+              </li>
+              <li>
+                <label v-on:click.stop="showInfo('contacts')"
+                  >Связаться с нами</label
+                >
+                <div>Контактная информация</div>
+              </li>
+            </ul>
+          </perfect-scrollbar>
+        </div>
       </div>
+
+      <profile
+        v-if="profileActive"
+        :closeProfile="closeProfile"
+        :userData="userData"
+      />
+
+      <!-- Компонент галереи -->
+      <gallery
+        :images="galleryData.images"
+        :server-origin="galleryData.serverOrigin"
+        :filter-config="galleryData.filterConfig"
+        @gallery-closed="onGalleryClosed"
+      />
+
+      <div class="main-logo">
+        <div class="contact-icons-wrapper">
+          <a
+            href="https://t.me/smartgamesstudio"
+            target="_black"
+            class="telegram-link"
+          >
+          </a>
+          <a
+            href="https://vk.com/smartgames.studio"
+            target="_black"
+            class="vk-link"
+          >
+          </a>
+        </div>
+      </div>
+
+      <img
+        id="bg-img"
+        src="./assets/lobby.png"
+        usemap="#image-map"
+        :style="{
+          position: 'absolute',
+          left: `${bg.left || 0}px`,
+          top: `${bg.top || 0}px`,
+          scale: bg.scale || 1,
+          transformOrigin: 'center',
+          filter: 'grayscale(1)',
+        }"
+      />
     </div>
-
-    <tutorial
-      class="scroll-off"
-      :customMenu="customMenu()"
-      :injectedActions="{
-        showProfile: () => {
-          this.showProfile();
-        },
-      }"
-    />
-
-    <div class="menu-item-list">
-      <div :class="['menu-item', pinned.game ? 'pinned' : '', 'game']">
-        <label v-on:click="pinMenuItem('game')">
-          ИГРОВАЯ КОМНАТА <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
-        </label>
-        <games class="menu-item-content" :showGameIframe="showGameIframe" />
-      </div>
-      <div :class="['menu-item', pinned.list ? 'pinned' : '', 'list']">
-        <label v-on:click="pinMenuItem('list')">
-          ПРАВИЛА ИГР <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
-        </label>
-        <rules class="menu-item-content" />
-      </div>
-      <div :class="['menu-item', pinned.chat ? 'pinned' : '', 'chat']">
-        <label v-on:click="pinMenuItem('chat')">
-          ОБЩЕНИЕ <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
-          <small v-if="unreadMessages > 0">есть новые сообщения</small>
-        </label>
-        <chat
-          class="menu-item-content"
-          :defActiveChannel="`lobby-${state.currentLobby}`"
-          :userData="userData"
-          :isVisible="pinned.chat"
-          :hasUnreadMessages="hasUnreadMessages"
-          :channels="chatChannels"
-        />
-      </div>
-      <div :class="['menu-item', pinned.top ? 'pinned' : '', 'top']">
-        <label v-on:click="pinMenuItem('top')">
-          ЗАЛ СЛАВЫ <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
-        </label>
-        <rankings class="menu-item-content" :games="lobby.rankings" />
-      </div>
-      <div
-        :class="[
-          'menu-item',
-          pinned.info ? 'pinned' : '',
-          'info',
-          !state.isMobile && pinned.info === null ? 'preview' : '',
-        ]"
-      >
-        <label v-on:click="pinMenuItem('info')">
-          УСЛУГИ СТУДИИ <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
-        </label>
-
-        <perfect-scrollbar class="menu-item-content">
-          <ul>
-            <li>
-              <label v-on:click.stop="showInfo('teambuilding')">Корпоративные тимбилдинги</label>
-              <div>В том числе в онлайн формате</div>
-            </li>
-            <li>
-              <label v-on:click.stop="showInfo('delivery')">Продажа настольных игр</label>
-              <div>В любом количестве с доставкой до офиса</div>
-            </li>
-            <li>
-              <label v-on:click.stop="showInfo('games')">Разработка игр на заказ</label>
-              <div>Настольные обучающие игры для любой сферы бизнеса</div>
-            </li>
-            <li>
-              <label v-on:click.stop="showInfo('it')">Создание онлайн-версий игр</label>
-              <div>Собственная команда программистов</div>
-            </li>
-            <li>
-              <label v-on:click.stop="showInfo('contacts')">Связаться с нами</label>
-              <div>Контактная информация</div>
-            </li>
-          </ul>
-        </perfect-scrollbar>
-      </div>
-    </div>
-
-    <profile v-if="profileActive" :closeProfile="closeProfile" :userData="userData" />
-
-    <!-- Компонент галереи -->
-    <gallery 
-      :images="galleryData.images" 
-      :server-origin="galleryData.serverOrigin" 
-      :filter-config="galleryData.filterConfig"
-      @gallery-closed="onGalleryClosed"
-    />
-
-    <div class="main-logo">
-      <div class="contact-icons-wrapper">
-        <a href="https://t.me/smartgamesstudio" target="_black" class="telegram-link"> </a>
-        <a href="https://vk.com/smartgames.studio" target="_black" class="vk-link"> </a>
-      </div>
-    </div>
-
-    <img
-      id="bg-img"
-      src="./assets/lobby.png"
-      usemap="#image-map"
-      :style="{
-        position: 'absolute',
-        left: `${bg.left || 0}px`,
-        top: `${bg.top || 0}px`,
-        scale: bg.scale || 1,
-        transformOrigin: 'center',
-        filter: 'grayscale(1)',
-      }"
-    />
   </div>
 </template>
 
 <script>
-import { PerfectScrollbar } from 'vue2-perfect-scrollbar';
-import { addEvents, removeEvents, events } from './lobbyEvents';
+import { PerfectScrollbar } from "vue2-perfect-scrollbar";
+import { addEvents, removeEvents, events } from "./lobbyEvents";
 
-import GUIWrapper from '@/components/gui-wrapper.vue';
-import tutorial from '~/lib/helper/front/helper.vue';
-import games from './components/games.vue';
-import rankings from './components/rankings.vue';
-import rules from './components/rules.vue';
-import profile from './components/profile.vue';
-import chat from '~/lib/chat/front/chat.vue';
-import gallery from './components/gallery.vue';
+import GUIWrapper from "@/components/gui-wrapper.vue";
+import tutorial from "~/lib/helper/front/helper.vue";
+import games from "./components/games.vue";
+import rankings from "./components/rankings.vue";
+import rules from "./components/rules.vue";
+import profile from "./components/profile.vue";
+import chat from "~/lib/chat/front/chat.vue";
+import gallery from "./components/gallery.vue";
+import authForm from "~/lib/lobby/front/components/AuthForm.vue";
 
 export default {
   components: {
@@ -176,44 +195,47 @@ export default {
     profile,
     chat,
     gallery,
-  },
-  props: {
-    customInitSession: Function,
+    authForm,
   },
   data() {
     return {
-      lobbyDataLoaded: false,
+      lobbyDataLoaded: true,
       lobbyDataLoadEvents: [],
       gameRestoreProcess: false,
-      auth: { login: '', password: '', err: null },
       unreadMessages: 0,
       profileActive: false,
       bg: {
         top: 0,
         left: 0,
-        showMask: '',
+        showMask: "",
       },
       pinnedItemsLoaded: false,
-      pinned: { chat: false, list: false, top: false, game: false, info: false },
-      iframeScr: '',
+      pinned: {
+        chat: false,
+        list: false,
+        top: false,
+        game: false,
+        info: false,
+      },
+      iframeScr: "",
       showLoginForm: false,
       // Данные для компонента галереи
       galleryData: {
         images: [],
-        serverOrigin: '',
-        filterConfig: { filters: [] }
+        serverOrigin: "",
+        filterConfig: { filters: [] },
       },
     };
   },
   watch: {
-    'userData.gameId': function (val) {
+    "userData.gameId": function (val) {
       if (!val) {
-        this.iframeScr = '';
+        this.iframeScr = "";
         this.gameRestoreProcess = false;
       }
     },
     lobbyDataLoaded: function () {
-      this.$set(this.$root.state, 'viewLoaded', true);
+      this.$set(this.$root.state, "viewLoaded", true);
       for (const event of this.lobbyDataLoadEvents) event();
       this.lobbyDataLoadEvents = [];
     },
@@ -240,7 +262,7 @@ export default {
     chatChannels() {
       return {
         [`lobby-${state.currentLobby}`]: {
-          name: 'Общий чат',
+          name: "Общий чат",
           users: this.lobby.users || {},
           items: this.lobby.chat || {},
         },
@@ -248,22 +270,22 @@ export default {
     },
     defaultTutorialMenu() {
       return {
-        text: 'Чем могу помочь?',
+        text: "Чем могу помочь?",
         bigControls: true,
         buttons: [
           {
-            text: 'Открой мой профиль',
+            text: "Открой мой профиль",
             action: async function () {
               this.menu = null;
               this.showProfile();
             },
           },
           {
-            text: 'Активировать подсказки',
+            text: "Активировать подсказки",
             action: async function () {
               await api.action
                 .call({
-                  path: 'helper.api.restoreLinks',
+                  path: "helper.api.restoreLinks",
                   args: [{ inGame: false }],
                 })
                 .then(() => {
@@ -280,29 +302,37 @@ export default {
             },
           },
           {
-            text: 'Покажи доступные обучения',
+            text: "Покажи доступные обучения",
             action: {
               text: `Выбери нужное обучение в списке, чтобы запустить его повторно:
               `,
               showList: [
-                { title: 'Стартовое приветствие', action: { tutorial: 'lobby-tutorial-start' } },
-                { title: 'Игровая комната', action: { tutorial: 'lobby-tutorial-menuGame' } },
                 {
-                  title: 'Корпоративные игры в тематике ИТ',
-                  action: { tutorial: 'lobby-tutorial-menuGameReleaseCorporate' },
+                  title: "Стартовое приветствие",
+                  action: { tutorial: "lobby-tutorial-start" },
                 },
                 {
-                  title: 'Корпоративные игры для автобизнеса',
-                  action: { tutorial: 'lobby-tutorial-menuGameAutoPoker' },
+                  title: "Игровая комната",
+                  action: { tutorial: "lobby-tutorial-menuGame" },
+                },
+                {
+                  title: "Корпоративные игры в тематике ИТ",
+                  action: {
+                    tutorial: "lobby-tutorial-menuGameReleaseCorporate",
+                  },
+                },
+                {
+                  title: "Корпоративные игры для автобизнеса",
+                  action: { tutorial: "lobby-tutorial-menuGameAutoPoker" },
                 },
               ],
               buttons: [
-                { text: 'Назад в меню', action: 'init' },
-                { text: 'Спасибо', action: 'exit', exit: true },
+                { text: "Назад в меню", action: "init" },
+                { text: "Спасибо", action: "exit", exit: true },
               ],
             },
           },
-          { text: 'Спасибо, ничего не нужно', action: 'exit', exit: true },
+          { text: "Спасибо, ничего не нужно", action: "exit", exit: true },
         ],
       };
     },
@@ -311,36 +341,25 @@ export default {
     },
   },
   methods: {
-    async initSession(config = {}) {
-      await this.$root.initSession(config, {
-        success: async ({ lobbyId, availableLobbies }) => {
-          if (lobbyId) {
-            // ??? как будто lobbyId всегда пустое
-            this.$set(this.$root.state, 'currentLobby', lobbyId);
-            this.lobbyDataLoaded = true;
-          } else {
-            if (availableLobbies.length) await this.callLobbyEnter({ lobbyId: availableLobbies[0] });
-          }
-        },
-        error: async (err) => {
-          if (err?.message) this.auth.err = err.message;
-          // чтобы пользователь увидел форму авторизации
-          this.lobbyDataLoaded = true;
-        },
-      });
+    async handleAuthSuccess({ lobbyId, availableLobbies }) {
+      if (lobbyId) {
+        // ??? как будто lobbyId всегда пустое
+        this.$set(this.$root.state, "currentLobby", lobbyId);
+        // this.lobbyDataLoaded = true;
+      } else {
+        if (availableLobbies.length)
+          await this.callLobbyEnter({ lobbyId: availableLobbies[0] });
+      }
     },
-    async createDemoUser({ tutorial } = {}) {
-      await this.initSession({ demo: true, tutorial });
-    },
-    async login() {
-      await this.initSession({ login: this.auth.login, password: this.auth.password });
+    async handleAuthError(err) {
+      // this.lobbyDataLoaded = true;
     },
     async callLobbyEnter({ lobbyId }) {
       await api.action
-        .call({ path: 'lobby.api.enter', args: [{ lobbyId }] })
+        .call({ path: "lobby.api.enter", args: [{ lobbyId }] })
         .then((data) => {
-          this.$set(this.$root.state, 'currentLobby', lobbyId);
-          this.lobbyDataLoaded = true;
+          this.$set(this.$root.state, "currentLobby", lobbyId);
+          // this.lobbyDataLoaded = true;
           if (data.restoreGame) this.gameRestoreProcess = true;
         })
         .catch(prettyAlert);
@@ -353,11 +372,11 @@ export default {
 
       window.iframeEvents.push({
         data: {
-          emit: { name: 'updateStore', data: { lobby: this.store.lobby } },
+          emit: { name: "updateStore", data: { lobby: this.store.lobby } },
         },
         event: (postMessageData) => {
-          const $iframe = document.querySelector('#gameIframe');
-          $iframe.contentWindow.postMessage(postMessageData, '*');
+          const $iframe = document.querySelector("#gameIframe");
+          $iframe.contentWindow.postMessage(postMessageData, "*");
         },
       });
 
@@ -366,33 +385,34 @@ export default {
       function encodeUri(state) {
         return Object.entries({
           // iframeCode: deckType,
+          iframe: true,
           lobbyOrigin: state.serverOrigin,
           userId: state.currentUser,
           lobbyId: state.currentLobby,
           token: state.currentToken,
         })
-          .map((pair) => pair.map(encodeURIComponent).join('='))
-          .join('&');
+          .map((pair) => pair.map(encodeURIComponent).join("="))
+          .join("&");
       }
 
-      this.iframeScr = game.url + '?' + encodeUri(state);
+      this.iframeScr = game.url + "?" + encodeUri(state);
     },
 
     show(mask) {
-      if (mask === '' && this.state.isMobile) return;
+      if (mask === "" && this.state.isMobile) return;
       this.bg.showMask = mask;
     },
     preparePinnedItems(userData = {}) {
       if (this.pinnedItemsLoaded) return;
       if (!userData?.lobbyPinnedItems) return;
-      this.$set(this, 'pinned', userData.lobbyPinnedItems);
+      this.$set(this, "pinned", userData.lobbyPinnedItems);
       this.pinnedItemsLoaded = true;
     },
     pinMenuItem(code) {
       this.pinned[code] = !this.pinned[code];
       api.action
         .call({
-          path: 'user.api.update',
+          path: "user.api.update",
           args: [{ lobbyPinnedItems: this.pinned }],
         })
         .catch(prettyAlert);
@@ -400,8 +420,8 @@ export default {
     showInfo(name) {
       api.action
         .call({
-          path: 'helper.api.action',
-          args: [{ tutorial: 'lobby-tutorial-sales', step: name }],
+          path: "helper.api.action",
+          args: [{ tutorial: "lobby-tutorial-sales", step: name }],
         })
         .catch(prettyAlert);
     },
@@ -413,12 +433,11 @@ export default {
     },
     hasUnreadMessages(count = 0) {
       if (this.unreadMessages === 0 && count > 0) {
-        prettyAlert({ message: 'Новое сообщение в чате' });
+        prettyAlert({ message: "Новое сообщение в чате" });
       }
     },
 
     // Методы для работы с галереей
-
 
     // Метод для обновления галереи (вызывается из rules.vue)
     updateGallery(images, serverOrigin, filterConfig) {
@@ -426,7 +445,7 @@ export default {
       this.galleryData = {
         images,
         serverOrigin,
-        filterConfig
+        filterConfig,
       };
     },
 
@@ -435,8 +454,8 @@ export default {
       // Очищаем данные галереи
       this.galleryData = {
         images: [],
-        serverOrigin: '',
-        filterConfig: { filters: [] }
+        serverOrigin: "",
+        filterConfig: { filters: [] },
       };
     },
 
@@ -447,15 +466,21 @@ export default {
       const { cancel, tutorials, helperLinks } = menuButtonsMap;
       const fillTutorials = tutorials({
         showList: [
-          { title: 'Стартовое приветствие', action: { tutorial: 'lobby-tutorial-start' } },
-          { title: 'Игровая комната', action: { tutorial: 'lobby-tutorial-menuGame' } },
           {
-            title: 'Корпоративные игры в тематике ИТ',
-            action: { tutorial: 'lobby-tutorial-menuGameReleaseCorporate' },
+            title: "Стартовое приветствие",
+            action: { tutorial: "lobby-tutorial-start" },
           },
           {
-            title: 'Корпоративные игры для автобизнеса',
-            action: { tutorial: 'lobby-tutorial-menuGameAutoPoker' },
+            title: "Игровая комната",
+            action: { tutorial: "lobby-tutorial-menuGame" },
+          },
+          {
+            title: "Корпоративные игры в тематике ИТ",
+            action: { tutorial: "lobby-tutorial-menuGameReleaseCorporate" },
+          },
+          {
+            title: "Корпоративные игры для автобизнеса",
+            action: { tutorial: "lobby-tutorial-menuGameAutoPoker" },
           },
         ],
       });
@@ -465,7 +490,7 @@ export default {
         buttons: [
           cancel(),
           {
-            text: 'Открой мой профиль',
+            text: "Открой мой профиль",
             action: async function () {
               self.menu = null;
               self.showProfile();
@@ -485,8 +510,11 @@ export default {
           args: [{ deckType, gameType, gameId, needLoadGame }],
         },
         event: ({ args }) => {
-          const $iframe = document.querySelector('#gameIframe');
-          $iframe.contentWindow.postMessage({ path: 'game.api.restore', args }, '*');
+          const $iframe = document.querySelector("#gameIframe");
+          $iframe.contentWindow.postMessage(
+            { path: "game.api.restore", args },
+            "*",
+          );
         },
       });
 
@@ -502,39 +530,36 @@ export default {
     };
     this.state.emit.iframeDead = async () => {
       const events = window.iframeEvents || [];
-      console.log('iframeDead', { events });
+      console.log("iframeDead", { events });
       // for (const { event, data } of events) {
       //   event(data);
       // }
     };
     this.state.emit.hideGameIframe = () => {
       this.gameRestoreProcess = false;
-      this.iframeScr = '';
+      this.iframeScr = "";
     };
   },
   async mounted() {
     if (this.state.currentUser && this.state.currentLobby) {
-      this.lobbyDataLoaded = true;
-    } else {
-      const initSession = this.customInitSession || this.initSession;
-      initSession();
+      // this.lobbyDataLoaded = true;
     }
+
     addEvents(this);
     events.resizeBG();
   },
   async beforeDestroy() {
     removeEvents();
-    this.$set(this.$root.state, 'viewLoaded', false);
-
+    this.$set(this.$root.state, "viewLoaded", false);
 
     return; // при входе в игру не выходим из лобби
 
     await api.action
       .call({
-        path: 'lobby.api.exit',
+        path: "lobby.api.exit",
       })
       .then((data) => {
-        this.$set(this.$root.state, 'currentLobby', '');
+        this.$set(this.$root.state, "currentLobby", "");
       })
       .catch(prettyAlert);
   },
@@ -542,14 +567,14 @@ export default {
 </script>
 <style src="vue2-perfect-scrollbar/dist/vue2-perfect-scrollbar.css" />
 <style lang="scss">
-@import '@/mixins.scss';
+@import "@/mixins.scss";
 
 #lobby {
   height: 100%;
   width: 100%;
 
   &.game-restore-process-active:after {
-    content: 'Загружается последняя игра...';
+    content: "Загружается последняя игра...";
     color: #f4e205;
     line-height: 36px;
   }
@@ -1049,7 +1074,7 @@ $textshadow: rgb(42, 22, 23);
 }
 
 .menu-item.list ul > li.disabled > label:not(.not-disabled):after {
-  content: '(в разработке)';
+  content: "(в разработке)";
   color: grey;
   font-size: 20px;
   padding-left: 10px;
@@ -1070,7 +1095,7 @@ $textshadow: rgb(42, 22, 23);
 }
 
 .lobby-btn:hover,
-.lobby-btn[disabled='disabled'] {
+.lobby-btn[disabled="disabled"] {
   background: black !important;
   color: #f4e205;
 }
@@ -1078,85 +1103,4 @@ $textshadow: rgb(42, 22, 23);
 .menu-item.pinned .chat-controls {
   display: flex !important;
 }
-
-#lobby > .auth {
-  z-index: 10001;
-  position: fixed;
-  left: 0px;
-  top: 0px;
-  width: 100%;
-  height: 100%;
-  background-image: url(@/assets/clear-black-back.png);
-  background-size: cover;
-  display: grid;
-
-  > .form {
-    align-self: center;
-    justify-self: center;
-    width: 400px;
-    height: auto;
-    border: 4px solid #f4e205;
-    display: flex;
-    flex-wrap: wrap;
-    color: #f4e205;
-    max-width: 90%;
-    position: fixed;
-
-    > .err {
-      width: 100%;
-      color: orangered;
-      margin-bottom: 10px;
-    }
-
-    > h3 {
-      width: 100%;
-      text-align: center;
-    }
-
-    > .inputs {
-      width: 100%;
-      display: flex;
-      margin: 10px;
-
-      > input {
-        width: 50%;
-        font-size: 14px;
-        padding: 2px 8px;
-        background: transparent;
-        border: 2px solid #f4e205;
-        color: #f4e205;
-      }
-    }
-
-    > button {
-      width: 100%;
-      margin: 10px;
-      background: transparent;
-      color: #f4e205;
-      border: 2px solid #f4e205;
-      cursor: pointer;
-
-      &:hover {
-        opacity: 0.7;
-      }
-
-      &.new {
-        background-color: #f4e205;
-        color: black;
-      }
-
-      &.link {
-        background: transparent;
-        border: none;
-        text-decoration: underline;
-        font-size: 16px;
-        padding: 0;
-        margin: 5px 0;
-        font-size: 12px;
-        padding-bottom: 10px;
-      }
-    }
-  }
-}
-
 </style>

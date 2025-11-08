@@ -7,7 +7,7 @@ export const FILTER_TYPES = {
   RARITY: 'rarity',
   CATEGORY: 'category',
   LEVEL: 'level',
-  TYPE: 'type'
+  TYPE: 'type',
 };
 
 export const FILTER_CONFIGS = {
@@ -23,7 +23,7 @@ export const FILTER_CONFIGS = {
         filterFunction: (items, value) => {
           const filterPrice = parseFloat(value);
           return items.filter((img) => img.price <= filterPrice);
-        }
+        },
       },
       {
         type: FILTER_TYPES.STARS,
@@ -41,7 +41,7 @@ export const FILTER_CONFIGS = {
           if (!value) return items;
           const filterStars = parseInt(value);
           return items.filter((img) => img.stars === filterStars);
-        }
+        },
       },
       {
         type: FILTER_TYPES.PRICE_GROUP,
@@ -59,9 +59,9 @@ export const FILTER_CONFIGS = {
         filterFunction: (items, value) => {
           if (!value) return items;
           return items.filter((img) => img.priceGroup && img.priceGroup.includes(value));
-        }
-      }
-    ]
+        },
+      },
+    ],
   },
 
   // Конфигурация для банковских продуктов
@@ -77,7 +77,7 @@ export const FILTER_CONFIGS = {
           if (!value) return items;
           const filterPrice = parseFloat(value);
           return items.filter((img) => (img.cost || img.price || 0) <= filterPrice);
-        }
+        },
       },
       {
         type: FILTER_TYPES.STARS,
@@ -94,7 +94,7 @@ export const FILTER_CONFIGS = {
           if (!value) return items;
           const filterStars = parseInt(value);
           return items.filter((img) => (img.stars || 0) === filterStars);
-        }
+        },
       },
       {
         type: FILTER_TYPES.CATEGORY,
@@ -111,9 +111,8 @@ export const FILTER_CONFIGS = {
         filterFunction: (items, value) => {
           if (!value) return items;
           return items.filter((img) => value.includes(img.group));
-        }
-      }
-    ]
+        },
+      },
+    ],
   },
 };
-
