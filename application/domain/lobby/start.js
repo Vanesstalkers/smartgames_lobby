@@ -1,21 +1,11 @@
 async () => {
   if (application.worker.id === 'W1') {
-    db.redis.handlers.afterStart(async () => {
+    db.redis.handlers.afterStart({ flushDB: async () => {
       await db.redis.flushDb(); // тут список игроков online и список загруженных игр
-    });
+    } });
 
-    db.mongo.handlers.afterStart(async () => {
-      const lobby = new domain.lobby.class();
-      const code = 'main';
-      await lobby.load({ fromDB: { query: { code } } }).catch(async (err) => {
-        if (err !== 'not_found') throw err; // любая ошибка, кроме ожидаемой "not_found";
-        await lobby.create({ code });
-      });
-      db.redis.handlers.afterStart(async () => {
-        await db.redis.set('lobbyData', { channelName: lobby.channelName() }, { json: true });
-      });
-
-      return;
+    db.mongo.handlers.afterStart({ initTelegram: async () => {
+    /*
 
       try {
         const { Midjourney } = npm.midjourney;
@@ -57,6 +47,7 @@ async () => {
         await lobby.startWatching({ telegramId: id, telegramUsername: username });
       });
       lobby.telegramBot(bot);
-    });
+    */
+    } });
   }
 };

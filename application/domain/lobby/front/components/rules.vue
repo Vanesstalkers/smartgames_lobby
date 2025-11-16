@@ -104,9 +104,10 @@
 
 <script>
 import { PerfectScrollbar } from 'vue2-perfect-scrollbar';
-import { FILTER_CONFIGS } from './gallery-filters-config.mjs';
+import { FILTER_CONFIGS } from '~/lib/lobby/front/components/gallery-filters-config.mjs';
 
 export default {
+  inject: ['updateGallery'],
   components: {
     PerfectScrollbar,
   },
@@ -151,7 +152,7 @@ export default {
       // Получаем конфигурацию фильтров для данного deck.group
       const filterConfig = this.getFilterConfig(deck, group);
       
-      this.$parent.updateGallery(images, serverOrigin, filterConfig);
+      this.updateGallery(images, serverOrigin, filterConfig);
     },
   },
   async created() {},
