@@ -34,9 +34,8 @@
       />
     </template>
 
-    <!-- Пример переопределения элемента game целиком -->
     <template #menu-item-game>
-      <games class="menu-item-content" :showGameIframe="showGameIframe" />
+      <games class="menu-item-content" :addGameHandler="addGameHandler" :showGameIframe="showGameIframe" />
     </template>
   </lobby>
 </template>
@@ -180,7 +179,83 @@ export default {
         iframeSrc: game.url + "?" + encodeUri(this.state),
       });
     },
+    // Кастомная функция addGame (опционально)
+    // Если не определена, будет использована дефолтная из базового компонента
+    async addGameHandler() {
+      // Ваша кастомная реализация
+      const {
+        deckType,
+        gameType,
+        gameConfig,
+        gameTimer,
+        teamsCount,
+        playerCount,
+        maxPlayersInGame,
+        gameRoundLimit,
+        difficulty,
+      } = this;
+      
+      if (!deckType || !gameType || !gameConfig) {
+        prettyAlert({ message: 'game config not set' });
+        return;
+      }
 
+      // Ваша кастомная логика здесь
+      console.log('Custom addGame called');
+
+      // Пример: вызов дефолтной логики после кастомной
+      // Для этого можно вызвать базовый метод через $options или использовать другой подход
+      
+      // Или полностью переопределить:
+      await api.action
+        .call({
+          path: 'user.api.update',
+          args: [
+            {
+              lobbyGameConfigs: {
+                active: {
+                  deckType,
+                  gameType,
+                  gameConfig,
+                  gameTimer,
+                  teamsCount,
+                  playerCount,
+                  maxPlayersInGame,
+                  gameRoundLimit,
+                  difficulty,
+                },
+              },
+            },
+          ],
+        })
+        .catch(prettyAlert);
+
+      let { name: userName, login, gender, tgUsername } = this.userData;
+      if (!userName) userName = login;
+
+      window.iframeEvents.push({
+        data: {
+          args: [
+            {
+              deckType,
+              gameType,
+              gameConfig,
+              gameTimer,
+              teamsCount,
+              playerCount,
+              maxPlayersInGame,
+              gameRoundLimit,
+              difficulty,
+            },
+          ],
+        },
+        event: ({ args }) => {
+          const $iframe = document.querySelector('#gameIframe');
+          $iframe.contentWindow.postMessage({ path: 'game.api.new', args }, '*');
+        },
+      });
+      this.showGameIframe({ deckType });
+    },
     customMenu() {
       const menuWrapper = tutorial.menuWrapper(this.userData);
       const menuButtonsMap = tutorial.menuButtonsMap(this.tutorialActions);

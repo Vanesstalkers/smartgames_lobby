@@ -1,4 +1,4 @@
-(class SmartGamesLobby extends lib.lobby.class() {
+(class SmartGamesLobby extends lib.lobby.Class() {
   gameServers = {};
 
   #telegramBot;
@@ -132,6 +132,8 @@
 
   checkRatings({ initiatorUserId = null, gameType = 'release' } = {}) {
     const game = this.rankings[gameType];
+    if (!game) return;
+
     const rankingList = Object.entries(game.rankingMap).map(([code, ranking]) => ({ ...ranking, code }));
     const rankingsUsersTop = [];
     for (const ranking of rankingList) {
