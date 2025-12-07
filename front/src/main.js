@@ -21,12 +21,10 @@ const init = async () => {
   window.tokenName = 'smartgames.session.token';
 
   const protocol = location.protocol === 'http:' ? 'ws' : 'wss';
-  // направление на конкретный port нужно для reconnect (см. initSession) + для отладки
-  const port = new URLSearchParams(location.search).get('port') || serverFrontConfig.port;
 
   const serverHost =
     process.env.NODE_ENV === 'development' || new URLSearchParams(document.location.search).get('dev') ?
-      `${location.hostname}:${port}` : `${location.hostname + location.pathname}/api`;
+      `${location.hostname}:${serverFrontConfig.port}` : `${location.hostname + location.pathname}/api`;
 
   window.Metacom = Metacom;
   const metacom = window.Metacom.create(`${protocol}://${serverHost}`, { callTimeout: 1000 * 1000 });
@@ -108,6 +106,7 @@ const init = async () => {
 
   const mixin = {
     methods: {
+      // универсальный метод (не только для игр)
       async initSession(config, handlers) {
         if (arguments.length < 2) {
           handlers = config;
@@ -127,13 +126,7 @@ const init = async () => {
             })) || {};
         if (session.newUser && typeof onError === 'function') await onError(); // отработает lobbyDataLoaded = true
 
-        const { token: sessionToken, userId, reconnect } = session;
-        if (reconnect) {
-          const { workerId, ports } = reconnect;
-          const port = ports[workerId.substring(1) * 1 - 1];
-          location.href = `${location.origin}?port=${port}`;
-          return;
-        }
+        const { token: sessionToken, userId } = session;
 
         this.$set(this.$root.state, 'currentToken', sessionToken);
         if (sessionToken && sessionToken !== token) localStorage.setItem(window.tokenName, sessionToken);
@@ -141,6 +134,8 @@ const init = async () => {
           this.$set(this.$root.state, 'currentUser', userId);
           if (typeof onSuccess === 'function') await onSuccess(session);
         }
+
+        return session;
       },
       async initSessionIframe() {
         const searchParams = new URLSearchParams(document.location.search);

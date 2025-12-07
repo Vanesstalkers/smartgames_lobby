@@ -1,11 +1,7 @@
 <template>
   <lobby>
-    <template #auth-form="{ handleAuthSuccess, callLobbyEnter }">
-      <auth-form
-        v-if="!state.currentUser"
-        :on-success="handleAuthSuccess"
-        :call-lobby-enter="callLobbyEnter"
-      >
+    <template>
+      <auth-form v-if="!state.currentUser">
         <template #default="{ createDemoUser }">
           <button
             class="link"
@@ -29,13 +25,40 @@
       <iframe
         v-if="iframeScr"
         :src="iframeScr"
-        :id="`gameIframe`"
+        id="gameIframe"
         allowfullscreen
+      />
+      <div v-if="iframeScr" class="iframe-bg" />
+      <font-awesome-icon
+        v-if="iframeScr"
+        class="iframe-close-btn"
+        :icon="['fas', 'circle-xmark']"
+        @click="closeIframe"
       />
     </template>
 
     <template #menu-item-game>
-      <games class="menu-item-content" :addGameHandler="addGameHandler" :showGameIframe="showGameIframe" />
+      <games class="menu-item-content" :deckMap="lobby.gameServers">
+        <template #new-game-controls="{}">
+          <div class="game-types">
+            <div
+              v-for="[code, game] in gameDeckList"
+              :key="code"
+              :class="[
+                'select-btn',
+                `game-${code}`,
+                'wait-for-select',
+                game.active === false ? 'disabled' : '',
+              ]"
+              @click="showGameLobbyIframe({ gameType: code })"
+            >
+              <div class="title">
+                <font-awesome-icon :icon="game.icon" /> {{ game.title }}
+              </div>
+            </div>
+          </div>
+        </template>
+      </games>
     </template>
   </lobby>
 </template>
@@ -145,9 +168,13 @@ export default {
         ],
       };
     },
+    gameDeckList() {
+      const list = Object.entries(this.lobby.gameServers || {});
+      return list.sort((a, b) => (a.disabled && !b.disabled ? 1 : -1));
+    },
   },
   methods: {
-    showGameIframe({ deckType }) {
+    showGameLobbyIframe({ gameType }) {
       window.iframeEvents = window.iframeEvents || [];
       window.iframeEvents.push({
         data: {
@@ -159,7 +186,7 @@ export default {
         },
       });
 
-      const game = this.lobby.gameServers[deckType];
+      const gameLobby = this.lobby.gameServers[gameType];
 
       function encodeUri(state) {
         return Object.entries({
@@ -173,11 +200,10 @@ export default {
           .join("&");
       }
 
-      this.$emit("show-game-iframe", {
-        deckType,
-        game,
-        iframeSrc: game.url + "?" + encodeUri(this.state),
-      });
+      this.iframeScr = gameLobby.url + "?" + encodeUri(this.state);
+    },
+    closeIframe() {
+      this.iframeScr = "";
     },
     // Кастомная функция addGame (опционально)
     // Если не определена, будет использована дефолтная из базового компонента
@@ -315,7 +341,7 @@ export default {
         },
       });
 
-      this.showGameIframe({ deckType });
+      this.showGameLobbyIframe({ deckType });
     };
 
     this.state.emit.iframeAlive = async () => {
@@ -340,6 +366,39 @@ export default {
 </script>
 <style lang="scss">
 @import "@/mixins.scss";
+
+#gameIframe {
+  width: 80% !important;
+  height: 80% !important;
+  top: 10%;
+  left: 10%;
+}
+.iframe-bg {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  z-index: 10001;
+  width: 100%;
+  height: 100%;
+  background-image: url(@/assets/clear-black-back.png);
+}
+.iframe-close-btn {
+  z-index: 99999;
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  right: calc(10% - 10px);
+  top: calc(10% - 10px);
+  color: #f4e205;
+  background-color: black;
+  border-radius: 50%;
+  box-shadow: inset 0px 0px 0px 4px #f4e205;
+  cursor: pointer;
+
+  &:hover {
+    border: 4px solid #f4e205;
+  }
+}
 
 #lobby {
   iframe {
