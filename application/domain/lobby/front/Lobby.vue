@@ -80,11 +80,11 @@ export default {
     };
   },
   watch: {
-    "userData.gameId": function (val) {
-      if (!val) {
-        this.iframeScr = "";
-      }
-    },
+    // "userData.gameId": function (val) {
+    //   if (!val) {
+    //     this.iframeScr = "";
+    //   }
+    // },
   },
   computed: {
     state() {
@@ -207,7 +207,7 @@ export default {
     },
     // Кастомная функция addGame (опционально)
     // Если не определена, будет использована дефолтная из базового компонента
-    async addGameHandler() {
+    async addGameHandler(data) {
       // Ваша кастомная реализация
       const {
         deckType,
@@ -219,23 +219,23 @@ export default {
         maxPlayersInGame,
         gameRoundLimit,
         difficulty,
-      } = this;
-      
+      } = data;
+
       if (!deckType || !gameType || !gameConfig) {
-        prettyAlert({ message: 'game config not set' });
+        prettyAlert({ message: "game config not set" });
         return;
       }
 
       // Ваша кастомная логика здесь
-      console.log('Custom addGame called');
+      console.log("Custom addGame called");
 
       // Пример: вызов дефолтной логики после кастомной
       // Для этого можно вызвать базовый метод через $options или использовать другой подход
-      
+
       // Или полностью переопределить:
       await api.action
         .call({
-          path: 'user.api.update',
+          path: "user.api.update",
           args: [
             {
               lobbyGameConfigs: {
@@ -275,12 +275,15 @@ export default {
             },
           ],
         },
-        event: ({ args }) => {
-          const $iframe = document.querySelector('#gameIframe');
-          $iframe.contentWindow.postMessage({ path: 'game.api.new', args }, '*');
+        event: (data) => {
+          const $iframe = document.querySelector("#gameIframe");
+          // $iframe.contentWindow.postMessage(
+          //   { emit: { name: "addGame", data } },
+          //   "*",
+          // );
         },
       });
-      this.showGameIframe({ deckType });
+      this.showGameLobbyIframe({ deckType });
     },
     customMenu() {
       const menuWrapper = tutorial.menuWrapper(this.userData);
