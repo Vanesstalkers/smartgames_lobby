@@ -1,7 +1,7 @@
 <template>
   <div id="app" :class="[state.isMobile ? 'mobile-view' : '', state.isLandscape ? 'landscape-view' : 'portrait-view']"
     :current-route="$root.state.currentRoute">
-    <button @click="toggleFullscreen" class="fullscreen-btn">
+    <button v-if="!state.hideFullscreeBtn" @click="toggleFullscreen" class="fullscreen-btn">
       <span v-if="!state.isFullscreen">
         <font-awesome-icon icon="fa-solid fa-expand" class="fa-xl" />
         На весь экран

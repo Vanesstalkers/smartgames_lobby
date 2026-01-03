@@ -43,6 +43,7 @@ const init = async () => {
     isLandscape: true,
     isPortrait: false,
     isFullscreen: false,
+    hideFullscreeBtn: false,
     guiScale: 1,
     store: {},
     emit: {

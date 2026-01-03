@@ -1,19 +1,12 @@
 <template>
-  <lobby>
-    <template>
-      <auth-form v-if="!state.currentUser">
+  <lobby :class="hideLobbyContent ? 'hide-lobby-content' : ''">
+    <template #auth-form>
+      <auth-form v-if="!state.currentUser" v-bind="{ customLobbyEnter }">
         <template #default="{ createDemoUser }">
           <button
             class="link"
             style="color: white"
-            v-on:click="
-              createDemoUser({
-                tutorial: {
-                  tutorial: 'lobby-tutorial-sales',
-                  step: 'teambuilding',
-                },
-              })
-            "
+            v-on:click="createDemoUser({ tutorial: { tutorial: 'lobby-tutorial-sales', step: 'teambuilding' } })"
           >
             Меня интересуют корпоративные игры
           </button>
@@ -22,12 +15,7 @@
     </template>
 
     <template #custom-layout>
-      <iframe
-        v-if="iframeScr"
-        :src="iframeScr"
-        id="gameIframe"
-        allowfullscreen
-      />
+      <iframe v-if="iframeScr" :src="iframeScr" id="gameIframe" allowfullscreen />
       <div v-if="iframeScr" class="iframe-bg" />
       <font-awesome-icon
         v-if="iframeScr"
@@ -37,24 +25,17 @@
       />
     </template>
 
-    <template #menu-item-game>
+    <template v-if="!hideLobbyContent" #menu-item-game>
       <games class="menu-item-content" :deckMap="lobby.gameServers">
         <template #new-game-controls="{}">
           <div class="game-types">
             <div
               v-for="[code, game] in gameDeckList"
               :key="code"
-              :class="[
-                'select-btn',
-                `game-${code}`,
-                'wait-for-select',
-                game.active === false ? 'disabled' : '',
-              ]"
-              @click="showGameLobbyIframe({ gameType: code })"
+              :class="['select-btn', `game-${code}`, 'wait-for-select', game.active === false ? 'disabled' : '']"
+              @click="showGameLobbyIframe({ gameType: code, createNewGame: true })"
             >
-              <div class="title">
-                <font-awesome-icon :icon="game.icon" /> {{ game.title }}
-              </div>
+              <div class="title"><font-awesome-icon :icon="game.icon" /> {{ game.title }}</div>
             </div>
           </div>
         </template>
@@ -64,9 +45,9 @@
 </template>
 
 <script>
-import lobby from "~/lib/lobby/front/Lobby.vue";
-import authForm from "~/lib/lobby/front/components/AuthForm.vue";
-import games from "~/lib/lobby/front/components/games.vue";
+import lobby from '~/lib/lobby/front/Lobby.vue';
+import authForm from '~/lib/lobby/front/components/AuthForm.vue';
+import games from '~/lib/lobby/front/components/games.vue';
 
 export default {
   components: {
@@ -76,15 +57,9 @@ export default {
   },
   data() {
     return {
-      iframeScr: "",
+      iframeScr: '',
+      hideLobbyContent: false,
     };
-  },
-  watch: {
-    // "userData.gameId": function (val) {
-    //   if (!val) {
-    //     this.iframeScr = "";
-    //   }
-    // },
   },
   computed: {
     state() {
@@ -102,22 +77,22 @@ export default {
     },
     defaultTutorialMenu() {
       return {
-        text: "Чем могу помочь?",
+        text: 'Чем могу помочь?',
         bigControls: true,
         buttons: [
           {
-            text: "Открой мой профиль",
+            text: 'Открой мой профиль',
             action: async function () {
               this.menu = null;
               this.showProfile();
             },
           },
           {
-            text: "Активировать подсказки",
+            text: 'Активировать подсказки',
             action: async function () {
               await api.action
                 .call({
-                  path: "helper.api.restoreLinks",
+                  path: 'helper.api.restoreLinks',
                   args: [{ inGame: false }],
                 })
                 .then(() => {
@@ -134,37 +109,37 @@ export default {
             },
           },
           {
-            text: "Покажи доступные обучения",
+            text: 'Покажи доступные обучения',
             action: {
               text: `Выбери нужное обучение в списке, чтобы запустить его повторно:
               `,
               showList: [
                 {
-                  title: "Стартовое приветствие",
-                  action: { tutorial: "lobby-tutorial-start" },
+                  title: 'Стартовое приветствие',
+                  action: { tutorial: 'lobby-tutorial-start' },
                 },
                 {
-                  title: "Игровая комната",
-                  action: { tutorial: "lobby-tutorial-menuGame" },
+                  title: 'Игровая комната',
+                  action: { tutorial: 'lobby-tutorial-menuGame' },
                 },
                 {
-                  title: "Корпоративные игры в тематике ИТ",
+                  title: 'Корпоративные игры в тематике ИТ',
                   action: {
-                    tutorial: "lobby-tutorial-menuGameReleaseCorporate",
+                    tutorial: 'lobby-tutorial-menuGameReleaseCorporate',
                   },
                 },
                 {
-                  title: "Корпоративные игры для автобизнеса",
-                  action: { tutorial: "lobby-tutorial-menuGameAutoPoker" },
+                  title: 'Корпоративные игры для автобизнеса',
+                  action: { tutorial: 'lobby-tutorial-menuGameAutoPoker' },
                 },
               ],
               buttons: [
-                { text: "Назад в меню", action: "init" },
-                { text: "Спасибо", action: "exit", exit: true },
+                { text: 'Назад в меню', action: 'init' },
+                { text: 'Спасибо', action: 'exit', exit: true },
               ],
             },
           },
-          { text: "Спасибо, ничего не нужно", action: "exit", exit: true },
+          { text: 'Спасибо, ничего не нужно', action: 'exit', exit: true },
         ],
       };
     },
@@ -178,105 +153,94 @@ export default {
       window.iframeEvents = window.iframeEvents || [];
       window.iframeEvents.push({
         data: {
-          emit: { name: "updateStore", data: { lobby: this.store.lobby } },
+          emit: { name: 'updateStore', data: { lobby: this.store.lobby } },
         },
         event: (postMessageData) => {
-          const $iframe = document.querySelector("#gameIframe");
-          $iframe.contentWindow.postMessage(postMessageData, "*");
+          const $iframe = document.querySelector('#gameIframe');
+          $iframe.contentWindow.postMessage(postMessageData, '*');
         },
       });
 
-      const gameLobby = this.lobby.gameServers[gameType];
+      this.hideLobbyContent = true;
+      this.state.hideFullscreeBtn = true;
 
-      function encodeUri(state) {
-        return Object.entries({
+      this.iframeScr =
+        this.lobby.gameServers[gameType].url +
+        '?' +
+        Object.entries({
           iframe: true,
-          lobbyOrigin: state.serverOrigin,
-          userId: state.currentUser,
-          lobbyId: state.currentLobby,
-          token: state.currentToken,
+          lobbyOrigin: this.state.serverOrigin,
+          userId: this.state.currentUser,
+          lobbyId: this.state.currentLobby,
+          token: this.state.currentToken,
+          createNewGame: this.state.createNewGame,
         })
-          .map((pair) => pair.map(encodeURIComponent).join("="))
-          .join("&");
-      }
-
-      this.iframeScr = gameLobby.url + "?" + encodeUri(this.state);
+          .map((pair) => pair.map(encodeURIComponent).join('='))
+          .join('&');
     },
     closeIframe() {
-      this.iframeScr = "";
+      this.hideLobbyContent = false;
+      this.state.hideFullscreeBtn = false;
+      this.iframeScr = '';
     },
+    async customLobbyEnter({ lobbyId }) {
+      await api.action
+        .call({ path: 'lobby.api.enter', args: [{ lobbyId }] })
+        .then(async (data) => {
+          this.$set(this.$root.state, 'currentLobby', lobbyId);
+          if (data.restoreGame) {
+            this.showGameLobbyIframe({ gameType: data.restoreGame.deckType });
+          }
+        })
+        .catch(prettyAlert);
+    },
+
     // Кастомная функция addGame (опционально)
     // Если не определена, будет использована дефолтная из базового компонента
     async addGameHandler(data) {
       // Ваша кастомная реализация
-      const {
-        deckType,
-        gameType,
-        gameConfig,
-        gameTimer,
-        teamsCount,
-        playerCount,
-        maxPlayersInGame,
-        gameRoundLimit,
-        difficulty,
-      } = data;
+      const { deckType, gameType, gameConfig, gameTimer } = data;
+      const { teamsCount, playerCount, maxPlayersInGame, gameRoundLimit, difficulty } = data;
 
       if (!deckType || !gameType || !gameConfig) {
-        prettyAlert({ message: "game config not set" });
+        prettyAlert({ message: 'game config not set' });
         return;
       }
 
       // Ваша кастомная логика здесь
-      console.log("Custom addGame called");
+      console.log('Custom addGame called');
 
       // Пример: вызов дефолтной логики после кастомной
       // Для этого можно вызвать базовый метод через $options или использовать другой подход
 
       // Или полностью переопределить:
-      await api.action
-        .call({
-          path: "user.api.update",
-          args: [
-            {
-              lobbyGameConfigs: {
-                active: {
-                  deckType,
-                  gameType,
-                  gameConfig,
-                  gameTimer,
-                  teamsCount,
-                  playerCount,
-                  maxPlayersInGame,
-                  gameRoundLimit,
-                  difficulty,
-                },
-              },
+      const args = [
+        {
+          lobbyGameConfigs: {
+            active: {
+              ...{ deckType, gameType, gameConfig, gameTimer },
+              ...{ teamsCount, playerCount, maxPlayersInGame, gameRoundLimit, difficulty },
             },
-          ],
-        })
-        .catch(prettyAlert);
+          },
+        },
+      ];
+      await api.action.call({ path: 'user.api.update', args }).catch(prettyAlert);
 
       let { name: userName, login, gender, tgUsername } = this.userData;
       if (!userName) userName = login;
 
+      const eventData = {
+        args: [
+          {
+            ...{ deckType, gameType, gameConfig, gameTimer },
+            ...{ teamsCount, playerCount, maxPlayersInGame, gameRoundLimit, difficulty },
+          },
+        ],
+      };
       window.iframeEvents.push({
-        data: {
-          args: [
-            {
-              deckType,
-              gameType,
-              gameConfig,
-              gameTimer,
-              teamsCount,
-              playerCount,
-              maxPlayersInGame,
-              gameRoundLimit,
-              difficulty,
-            },
-          ],
-        },
+        data: eventData,
         event: (data) => {
-          const $iframe = document.querySelector("#gameIframe");
+          const $iframe = document.querySelector('#gameIframe');
           // $iframe.contentWindow.postMessage(
           //   { emit: { name: "addGame", data } },
           //   "*",
@@ -293,20 +257,20 @@ export default {
       const fillTutorials = tutorials({
         showList: [
           {
-            title: "Стартовое приветствие",
-            action: { tutorial: "lobby-tutorial-start" },
+            title: 'Стартовое приветствие',
+            action: { tutorial: 'lobby-tutorial-start' },
           },
           {
-            title: "Игровая комната",
-            action: { tutorial: "lobby-tutorial-menuGame" },
+            title: 'Игровая комната',
+            action: { tutorial: 'lobby-tutorial-menuGame' },
           },
           {
-            title: "Корпоративные игры в тематике ИТ",
-            action: { tutorial: "lobby-tutorial-menuGameReleaseCorporate" },
+            title: 'Корпоративные игры в тематике ИТ',
+            action: { tutorial: 'lobby-tutorial-menuGameReleaseCorporate' },
           },
           {
-            title: "Корпоративные игры для автобизнеса",
-            action: { tutorial: "lobby-tutorial-menuGameAutoPoker" },
+            title: 'Корпоративные игры для автобизнеса',
+            action: { tutorial: 'lobby-tutorial-menuGameAutoPoker' },
           },
         ],
       });
@@ -316,7 +280,7 @@ export default {
         buttons: [
           cancel(),
           {
-            text: "Открой мой профиль",
+            text: 'Открой мой профиль',
             action: async function () {
               self.menu = null;
               self.showProfile();
@@ -329,24 +293,6 @@ export default {
     },
   },
   async created() {
-    this.state.emit.restoreGame = async (data) => {
-      const { deckType, gameType, gameId, needLoadGame } = data;
-      window.iframeEvents.push({
-        data: {
-          args: [{ deckType, gameType, gameId, needLoadGame }],
-        },
-        event: ({ args }) => {
-          const $iframe = document.querySelector("#gameIframe");
-          $iframe.contentWindow.postMessage(
-            { path: "game.api.restore", args },
-            "*",
-          );
-        },
-      });
-
-      this.showGameLobbyIframe({ deckType });
-    };
-
     this.state.emit.iframeAlive = async () => {
       const events = window.iframeEvents || [];
       for (const { event, data } of events) {
@@ -356,19 +302,19 @@ export default {
     };
     this.state.emit.iframeDead = async () => {
       const events = window.iframeEvents || [];
-      console.log("iframeDead", { events });
+      console.log('iframeDead', { events });
       // for (const { event, data } of events) {
       //   event(data);
       // }
     };
     this.state.emit.hideGameIframe = () => {
-      this.iframeScr = "";
+      this.iframeScr = '';
     };
   },
 };
 </script>
 <style lang="scss">
-@import "@/mixins.scss";
+@import '@/mixins.scss';
 
 #gameIframe {
   width: 80% !important;
@@ -416,5 +362,9 @@ export default {
   &.game-restore-process-active > *:not(iframe) {
     display: none;
   }
+}
+
+.hide-lobby-content #lobby > *:not(iframe, .iframe-bg, .iframe-close-btn, #bg-img) {
+  display: none;
 }
 </style>
