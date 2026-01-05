@@ -1,5 +1,5 @@
 <template>
-  <lobby :class="hideLobbyContent ? 'hide-lobby-content' : ''">
+  <lobby ref="lobbyComponent" :class="hideLobbyContent ? 'hide-lobby-content' : ''" :customMenu="customMenu">
     <template #auth-form>
       <auth-form v-if="!state.currentUser" v-bind="{ customLobbyEnter }">
         <template #default="{ createDemoUser }">
@@ -41,19 +41,58 @@
         </template>
       </games>
     </template>
+
+    <template v-if="!hideLobbyContent" #menu-item-info="{ pinned, pinMenuItem }">
+      <div :class="['menu-item', pinned ? 'pinned' : '', 'info', !state.isMobile && pinned === null ? 'preview' : '']">
+        <label v-on:click="pinMenuItem('info')">
+          УСЛУГИ СТУДИИ
+          <font-awesome-icon :icon="['fas', 'circle-xmark']" size="2xs" />
+        </label>
+
+        <perfect-scrollbar class="menu-item-content">
+          <ul>
+            <li>
+              <label v-on:click.stop="showInfo('teambuilding')">Корпоративные тимбилдинги</label>
+              <div>В том числе в онлайн формате</div>
+            </li>
+            <li>
+              <label v-on:click.stop="showInfo('delivery')">Продажа настольных игр</label>
+              <div>В любом количестве с доставкой до офиса</div>
+            </li>
+            <li>
+              <label v-on:click.stop="showInfo('games')">Разработка игр на заказ</label>
+              <div>Настольные обучающие игры для любой сферы бизнеса</div>
+            </li>
+            <li>
+              <label v-on:click.stop="showInfo('it')">Создание онлайн-версий игр</label>
+              <div>Собственная команда программистов</div>
+            </li>
+            <li>
+              <label v-on:click.stop="showInfo('contacts')">Связаться с нами</label>
+              <div>Контактная информация</div>
+            </li>
+          </ul>
+        </perfect-scrollbar>
+      </div>
+    </template>
   </lobby>
 </template>
 
 <script>
+import { PerfectScrollbar } from 'vue2-perfect-scrollbar';
+
 import lobby from '~/lib/lobby/front/Lobby.vue';
 import authForm from '~/lib/lobby/front/components/AuthForm.vue';
 import games from '~/lib/lobby/front/components/games.vue';
+import tutorial from '~/lib/helper/front/helper.vue';
 
 export default {
   components: {
     lobby,
     authForm,
     games,
+    tutorial,
+    PerfectScrollbar,
   },
   data() {
     return {
@@ -75,80 +114,17 @@ export default {
     lobby() {
       return this.store.lobby?.[this.state.currentLobby] || {};
     },
-    defaultTutorialMenu() {
-      return {
-        text: 'Чем могу помочь?',
-        bigControls: true,
-        buttons: [
-          {
-            text: 'Открой мой профиль',
-            action: async function () {
-              this.menu = null;
-              this.showProfile();
-            },
-          },
-          {
-            text: 'Активировать подсказки',
-            action: async function () {
-              await api.action
-                .call({
-                  path: 'helper.api.restoreLinks',
-                  args: [{ inGame: false }],
-                })
-                .then(() => {
-                  this.menu = null;
-                  {
-                    // перерисовываем helper-а, чтобы отобразились подсказки
-                    this.resetFlag = true;
-                    setTimeout(() => {
-                      this.resetFlag = false;
-                    }, 100);
-                  }
-                })
-                .catch(prettyAlert);
-            },
-          },
-          {
-            text: 'Покажи доступные обучения',
-            action: {
-              text: `Выбери нужное обучение в списке, чтобы запустить его повторно:
-              `,
-              showList: [
-                {
-                  title: 'Стартовое приветствие',
-                  action: { tutorial: 'lobby-tutorial-start' },
-                },
-                {
-                  title: 'Игровая комната',
-                  action: { tutorial: 'lobby-tutorial-menuGame' },
-                },
-                {
-                  title: 'Корпоративные игры в тематике ИТ',
-                  action: {
-                    tutorial: 'lobby-tutorial-menuGameReleaseCorporate',
-                  },
-                },
-                {
-                  title: 'Корпоративные игры для автобизнеса',
-                  action: { tutorial: 'lobby-tutorial-menuGameAutoPoker' },
-                },
-              ],
-              buttons: [
-                { text: 'Назад в меню', action: 'init' },
-                { text: 'Спасибо', action: 'exit', exit: true },
-              ],
-            },
-          },
-          { text: 'Спасибо, ничего не нужно', action: 'exit', exit: true },
-        ],
-      };
-    },
     gameDeckList() {
       const list = Object.entries(this.lobby.gameServers || {});
       return list.sort((a, b) => (a.disabled && !b.disabled ? 1 : -1));
     },
   },
   methods: {
+    updateLobbyState(state) {
+      if (this.$refs.lobbyComponent) {
+        this.$refs.lobbyComponent.lobbyState = state;
+      }
+    },
     showGameLobbyIframe({ gameType }) {
       window.iframeEvents = window.iframeEvents || [];
       window.iframeEvents.push({
@@ -187,8 +163,11 @@ export default {
       await api.action
         .call({ path: 'lobby.api.enter', args: [{ lobbyId }] })
         .then(async (data) => {
+          this.updateLobbyState('');
           this.$set(this.$root.state, 'currentLobby', lobbyId);
+
           if (data.restoreGame) {
+            this.updateLobbyState('restoring-game');
             this.showGameLobbyIframe({ gameType: data.restoreGame.deckType });
           }
         })
@@ -275,21 +254,28 @@ export default {
         ],
       });
 
-      const self = this;
       return menuWrapper({
         buttons: [
           cancel(),
           {
             text: 'Открой мой профиль',
-            action: async function () {
-              self.menu = null;
-              self.showProfile();
+            action: async ({ helper }) => {
+              helper.menu = null;
+              this.$refs.lobbyComponent.showProfile();
             },
           },
           fillTutorials,
           helperLinks(),
         ],
       });
+    },
+    showInfo(name) {
+      api.action
+        .call({
+          path: 'helper.api.action',
+          args: [{ tutorial: 'lobby-tutorial-sales', step: name }],
+        })
+        .catch(prettyAlert);
     },
   },
   async created() {
@@ -361,6 +347,61 @@ export default {
 
   &.game-restore-process-active > *:not(iframe) {
     display: none;
+  }
+
+  .menu-item.info {
+    top: 100px;
+    left: calc(50% + 400px);
+
+    $info_textshadow: rgb(42, 22, 23);
+
+    > label {
+      font-size: 2.5em;
+      letter-spacing: 6px;
+      color: white;
+      background-image: linear-gradient(#1976d2, #1976d2);
+      text-shadow:
+        $info_textshadow 0px -2px 0px,
+        $info_textshadow -2px 0px 0px,
+        $info_textshadow 0px 0px 0px,
+        $info_textshadow 0.669131px 0.743145px 0px,
+        $info_textshadow 1.33826px 1.48629px 0px,
+        $info_textshadow 2.00739px 2.22943px 0px,
+        $info_textshadow 2.67652px 2.97258px 0px,
+        $info_textshadow 3.34565px 3.71572px 0px,
+        $info_textshadow 4.01478px 4.45887px 0px,
+        $info_textshadow 4.68391px 5.20201px 0px;
+
+      > svg {
+        color: #1976d2;
+        width: 18px;
+        height: 18px;
+        margin-top: 4px;
+        background-color: white;
+        // box-shadow: inset 0px 0px 0px 4px #1976d2;
+      }
+    }
+
+    &.pinned > label,
+    &:hover > label {
+      background-image: linear-gradient(#1976d2, #1976d2);
+
+      &:before {
+        display: none;
+      }
+    }
+
+    &.preview:not(.pinned) > div {
+      height: 180px;
+      overflow: hidden;
+    }
+
+    > div,
+    &.info.preview:hover > div {
+      height: 460px;
+      width: 400px;
+      border-color: #1976d2;
+    }
   }
 }
 

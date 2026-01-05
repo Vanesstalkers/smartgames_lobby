@@ -23,8 +23,9 @@ const init = async () => {
   const protocol = location.protocol === 'http:' ? 'ws' : 'wss';
 
   const serverHost =
-    process.env.NODE_ENV === 'development' || new URLSearchParams(document.location.search).get('dev') ?
-      `${location.hostname}:${serverFrontConfig.port}` : `${location.hostname + location.pathname}/api`;
+    process.env.NODE_ENV === 'development' || new URLSearchParams(document.location.search).get('dev')
+      ? `${location.hostname}:${serverFrontConfig.port}`
+      : `${location.hostname + location.pathname}/api`;
 
   window.Metacom = Metacom;
   const metacom = window.Metacom.create(`${protocol}://${serverHost}`, { callTimeout: 1000 * 1000 });
@@ -68,12 +69,16 @@ const init = async () => {
 
     if (!event) return console.error(`event "${eventName}" not found`);
 
-    event(data, config);
+    try {
+      event(data, config);
 
-    const $iframe = document.querySelector('#gameIframe');
-    if ($iframe) {
-      // game active
-      $iframe.contentWindow.postMessage({ emit: { name: eventName, data, config } }, '*');
+      const $iframe = document.querySelector('#gameIframe');
+      if ($iframe) {
+        // game active
+        $iframe.contentWindow.postMessage({ emit: { name: eventName, data, config } }, '*');
+      }
+    } catch (err) {
+      prettyAlert(err);
     }
   });
 
