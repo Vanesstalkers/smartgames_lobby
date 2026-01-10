@@ -1,6 +1,9 @@
 <template>
-  <div id="app" :class="[state.isMobile ? 'mobile-view' : '', state.isLandscape ? 'landscape-view' : 'portrait-view']"
-    :current-route="$root.state.currentRoute">
+  <div
+    id="app"
+    :class="[state.isMobile ? 'mobile-view' : '', state.isLandscape ? 'landscape-view' : 'portrait-view']"
+    :current-route="$root.state.currentRoute"
+  >
     <button v-if="!state.hideFullscreeBtn" @click="toggleFullscreen" class="fullscreen-btn">
       <span v-if="!state.isFullscreen">
         <font-awesome-icon icon="fa-solid fa-expand" class="fa-xl" />
@@ -27,6 +30,9 @@ export default {
     return { error: '' };
   },
   watch: {
+    lobbyDataLoaded() {
+      this.$root.state.viewLoaded = true;
+    },
     'userData.avatars.code': function () {
       // !!! перенести в generateAvatar с добавлением кнопки перехода в профиль
       prettyAlert(
@@ -39,15 +45,18 @@ export default {
     state() {
       return this.$root.state || {};
     },
-    state() {
-      return this.$root.state || {};
-    },
     store() {
       return this.state.store || {};
     },
     userData() {
       const currentUserData = this.store.user?.[this.state.currentUser];
       return { id: this.state.currentUser, ...(currentUserData || {}) };
+    },
+    lobby() {
+      return this.store.lobby?.[this.state.currentLobby] || {};
+    },
+    lobbyDataLoaded() {
+      return !!this.lobby.code;
     },
     viewLoaded() {
       return this.$root.state.viewLoaded;
@@ -113,7 +122,7 @@ body {
   width: 100%;
 }
 
-#app>.exit {
+#app > .exit {
   position: absolute;
   bottom: 0px;
   width: 100%;
@@ -123,19 +132,19 @@ body {
   font-size: 20px;
 }
 
-#app>.exit>button {
+#app > .exit > button {
   background: #ccc;
   border: none;
   font-size: 20px;
   padding: 4px 40px;
 }
 
-#app>.exit>button:hover {
+#app > .exit > button:hover {
   cursor: pointer;
   opacity: 0.8;
 }
 
-#app>.error {
+#app > .error {
   color: white;
   background: #ff000080;
   padding: 20px;

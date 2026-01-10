@@ -296,6 +296,9 @@ export default {
     this.state.emit.hideGameIframe = () => {
       this.iframeScr = '';
     };
+    this.state.emit.enterGame = async () => {
+      this.updateLobbyState('in-game');
+    };
   },
 };
 </script>

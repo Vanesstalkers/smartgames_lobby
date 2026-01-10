@@ -43,6 +43,7 @@ const init = async () => {
     isMobile: false,
     isLandscape: true,
     isPortrait: false,
+    iframeMode: window !== window.parent,
     isFullscreen: false,
     hideFullscreeBtn: false,
     guiScale: 1,
