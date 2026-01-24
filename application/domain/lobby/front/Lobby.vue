@@ -26,14 +26,17 @@
     </template>
 
     <template v-if="!hideLobbyContent" #menu-item-game>
-      <games class="menu-item-content" :deckMap="lobby.gameServers">
+      <games ref="lobbyGames" class="menu-item-content" :gamesMap="lobby.gameServers" :customJoinGame="customJoinGame">
+        <template #breadcrumbs="{}">
+          <div v-if="gamesList.length == 0" class="breadcrumbs">Ожидание подключения игровых серверов...</div>
+        </template>
         <template #new-game-controls="{}">
           <div class="game-types">
             <div
-              v-for="[code, game] in gameDeckList"
+              v-for="[code, game] in gamesList"
               :key="code"
               :class="['select-btn', `game-${code}`, 'wait-for-select', game.active === false ? 'disabled' : '']"
-              @click="showGameLobbyIframe({ gameType: code, createNewGame: true })"
+              @click="showGameLobbyIframe({ gameCode: code, createNewGame: true, updateUserConfig: true })"
             >
               <div class="title"><font-awesome-icon :icon="game.icon" /> {{ game.title }}</div>
             </div>
@@ -114,7 +117,7 @@ export default {
     lobby() {
       return this.store.lobby?.[this.state.currentLobby] || {};
     },
-    gameDeckList() {
+    gamesList() {
       const list = Object.entries(this.lobby.gameServers || {});
       return list.sort((a, b) => (a.disabled && !b.disabled ? 1 : -1));
     },
@@ -125,23 +128,12 @@ export default {
         this.$refs.lobbyComponent.lobbyState = state;
       }
     },
-    showGameLobbyIframe({ gameType }) {
-      window.iframeEvents = window.iframeEvents || [];
-      window.iframeEvents.push({
-        data: {
-          emit: { name: 'updateStore', data: { lobby: this.store.lobby } },
-        },
-        event: (postMessageData) => {
-          const $iframe = document.querySelector('#gameIframe');
-          $iframe.contentWindow.postMessage(postMessageData, '*');
-        },
-      });
-
+    showGameLobbyIframe({ gameCode, updateUserConfig = false, joinGameId = null }) {
       this.hideLobbyContent = true;
       this.state.hideFullscreeBtn = true;
 
       this.iframeScr =
-        this.lobby.gameServers[gameType].url +
+        this.lobby.gameServers[gameCode].url +
         '?' +
         Object.entries({
           iframe: true,
@@ -150,14 +142,24 @@ export default {
           lobbyId: this.state.currentLobby,
           token: this.state.currentToken,
           createNewGame: this.state.createNewGame,
+          joinGameId,
         })
+          .filter(([key, val]) => val)
           .map((pair) => pair.map(encodeURIComponent).join('='))
           .join('&');
+
+      if (updateUserConfig) {
+        const args = [{ lobbyConfigs: { iframeGameCode: gameCode } }];
+        api.action.call({ path: 'user.api.update', args }).catch(prettyAlert);
+      }
     },
     closeIframe() {
       this.hideLobbyContent = false;
       this.state.hideFullscreeBtn = false;
       this.iframeScr = '';
+
+      const args = [{ lobbyConfigs: { iframeGameCode: null } }];
+      api.action.call({ path: 'user.api.update', args }).catch(prettyAlert);
     },
     async customLobbyEnter({ lobbyId }) {
       await api.action
@@ -168,65 +170,20 @@ export default {
 
           if (data.restoreGame) {
             this.updateLobbyState('restoring-game');
-            this.showGameLobbyIframe({ gameType: data.restoreGame.deckType });
+            this.showGameLobbyIframe({ gameCode: data.restoreGame.gameCode });
+          } else {
+            const { iframeGameCode } = this.userData.lobbyConfigs || {};
+            if (iframeGameCode) this.showGameLobbyIframe({ gameCode: iframeGameCode });
           }
         })
         .catch(prettyAlert);
     },
+    async customJoinGame({ gameCode, gameId, viewerMode, teamId }) {
+      // игровой сервер мог отключиться
+      const { isAlive } = await api.action.call({ path: 'lobby.api.checkGame', args: [{ gameId }] }).catch(prettyAlert);
+      if (!isAlive) return;
 
-    // Кастомная функция addGame (опционально)
-    // Если не определена, будет использована дефолтная из базового компонента
-    async addGameHandler(data) {
-      // Ваша кастомная реализация
-      const { deckType, gameType, gameConfig, gameTimer } = data;
-      const { teamsCount, playerCount, maxPlayersInGame, gameRoundLimit, difficulty } = data;
-
-      if (!deckType || !gameType || !gameConfig) {
-        prettyAlert({ message: 'game config not set' });
-        return;
-      }
-
-      // Ваша кастомная логика здесь
-      console.log('Custom addGame called');
-
-      // Пример: вызов дефолтной логики после кастомной
-      // Для этого можно вызвать базовый метод через $options или использовать другой подход
-
-      // Или полностью переопределить:
-      const args = [
-        {
-          lobbyGameConfigs: {
-            active: {
-              ...{ deckType, gameType, gameConfig, gameTimer },
-              ...{ teamsCount, playerCount, maxPlayersInGame, gameRoundLimit, difficulty },
-            },
-          },
-        },
-      ];
-      await api.action.call({ path: 'user.api.update', args }).catch(prettyAlert);
-
-      let { name: userName, login, gender, tgUsername } = this.userData;
-      if (!userName) userName = login;
-
-      const eventData = {
-        args: [
-          {
-            ...{ deckType, gameType, gameConfig, gameTimer },
-            ...{ teamsCount, playerCount, maxPlayersInGame, gameRoundLimit, difficulty },
-          },
-        ],
-      };
-      window.iframeEvents.push({
-        data: eventData,
-        event: (data) => {
-          const $iframe = document.querySelector('#gameIframe');
-          // $iframe.contentWindow.postMessage(
-          //   { emit: { name: "addGame", data } },
-          //   "*",
-          // );
-        },
-      });
-      this.showGameLobbyIframe({ deckType });
+      this.showGameLobbyIframe({ gameCode, joinGameId: gameId, viewerMode, teamId });
     },
     customMenu() {
       const menuWrapper = tutorial.menuWrapper(this.userData);
@@ -296,8 +253,14 @@ export default {
     this.state.emit.hideGameIframe = () => {
       this.iframeScr = '';
     };
-    this.state.emit.enterGame = async () => {
+    this.state.emit.iframeEnterGame = async () => {
       this.updateLobbyState('in-game');
+    };
+    this.state.emit.iframeLeaveGame = async () => {
+      this.updateLobbyState('');
+    };
+    this.state.emit.iframeLeaveLobby = async () => {
+      this.closeIframe();
     };
   },
 };
@@ -404,6 +367,12 @@ export default {
       height: 460px;
       width: 400px;
       border-color: #1976d2;
+    }
+  }
+
+  &.state-in-game {
+    .iframe-close-btn {
+      display: none;
     }
   }
 }

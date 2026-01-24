@@ -7,6 +7,22 @@
   constructor(data, config = {}) {
     super(data, { ...config, chatEnabled: false });
   }
+
+  async processData(data, broadcaster) {
+    const lobbyMap = data.lobby;
+    if (lobbyMap) {
+      for (const [id, lobby] of Object.entries(lobbyMap)) {
+        if (lobby.games) {
+          this.set({ games: lobby.games });
+          this.checkGameStatuses();
+        }
+      }
+    }
+
+    delete data.lobby;
+    super.processData(data, broadcaster);
+  }
+
   telegramBot(bot) {
     if (!bot) return this.#telegramBot;
     this.#telegramBot = bot;
@@ -98,14 +114,15 @@
     };
   }
 
-  async gameServerConnected({ code, ...serverData }) {
+  async gameServerConnected({ code, channelName, ...serverData }) {
     this.set({ gameServers: { [code]: serverData } }, { removeEmptyObject: true });
     await this.saveChanges();
+    await this.subscribe(channelName, { rule: 'fields', fields: ['games'] });
   }
 
-  getGameConfig({ deckType, gameType, gameConfig }) {
+  getGameConfig({ gameCode, gameType, gameConfig }) {
     const {
-      [deckType]: {
+      [gameCode]: {
         games: {
           [gameType]: {
             items: {
@@ -142,11 +159,12 @@
       const draftUsersTop = users.map((userId) => ({ ...(this.users[userId].rankings?.[gameType] || {}), userId }));
 
       const sortFunc = this.rankingSortFunc[`${gameType}.${ranking.code}`];
-      const usersTop = sortFunc ?
-        draftUsersTop
-          .sort(sortFunc)
-          .map(({ userId }) => userId)
-          .splice(0, 5) : [];
+      const usersTop = sortFunc
+        ? draftUsersTop
+            .sort(sortFunc)
+            .map(({ userId }) => userId)
+            .splice(0, 5)
+        : [];
 
       this.set({
         rankings: {
