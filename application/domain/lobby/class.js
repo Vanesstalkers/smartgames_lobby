@@ -1,5 +1,16 @@
 (class SmartGamesLobby extends lib.lobby.Class() {
   gameServers = {};
+  rankingSortFunc = {
+    'release.richestPlayers': (a, b) => ((a.money || -1) > (b.money || -1) ? -1 : 1),
+    'release.topPlayers': (a, b) => ((a.games || -1) > (b.games || -1) ? -1 : 1),
+    // 'release.topFreelancers': null,
+    'release.bestQuality': (a, b) => ((a.crutch || -1) / (a.games || -1) < (b.crutch || -1) / (b.games || -1) ? -1 : 1),
+    'release.bestT2M': (a, b) => ((a.avrTime || -1) < (b.avrTime || -1) ? -1 : 1),
+    'car.richestPlayers': (a, b) => ((a.money || -1) > (b.money || -1) ? -1 : 1),
+    'car.topPlayers': (a, b) => ((a.games || -1) > (b.games || -1) ? -1 : 1),
+    'bank.richestPlayers': (a, b) => ((a.money || -1) > (b.money || -1) ? -1 : 1),
+    'bank.topPlayers': (a, b) => ((a.games || -1) > (b.games || -1) ? -1 : 1),
+  };
 
   #telegramBot;
   #midjourneyClient;
@@ -133,49 +144,5 @@
       },
     } = this.gameServers;
     return { teamsCount, playerCount };
-  }
-
-  rankingSortFunc = {
-    'release.richestPlayers': (a, b) => ((a.money || -1) > (b.money || -1) ? -1 : 1),
-    'release.topPlayers': (a, b) => ((a.games || -1) > (b.games || -1) ? -1 : 1),
-    // 'release.topFreelancers': null,
-    'release.bestQuality': (a, b) => ((a.crutch || -1) / (a.games || -1) < (b.crutch || -1) / (b.games || -1) ? -1 : 1),
-    'release.bestT2M': (a, b) => ((a.avrTime || -1) < (b.avrTime || -1) ? -1 : 1),
-    'car.richestPlayers': (a, b) => ((a.money || -1) > (b.money || -1) ? -1 : 1),
-    'car.topPlayers': (a, b) => ((a.games || -1) > (b.games || -1) ? -1 : 1),
-    'bank.richestPlayers': (a, b) => ((a.money || -1) > (b.money || -1) ? -1 : 1),
-    'bank.topPlayers': (a, b) => ((a.games || -1) > (b.games || -1) ? -1 : 1),
-  };
-
-  checkRatings({ initiatorUserId = null, gameType = 'release' } = {}) {
-    const game = this.rankings[gameType];
-    if (!game) return;
-
-    const rankingList = Object.entries(game.rankingMap).map(([code, ranking]) => ({ ...ranking, code }));
-    const rankingsUsersTop = [];
-    for (const ranking of rankingList) {
-      const users = Object.values(ranking.usersTop || []); // клонирование массива usersTop
-      if (initiatorUserId && !users.includes(initiatorUserId)) users.push(initiatorUserId);
-      const draftUsersTop = users.map((userId) => ({ ...(this.users[userId].rankings?.[gameType] || {}), userId }));
-
-      const sortFunc = this.rankingSortFunc[`${gameType}.${ranking.code}`];
-      const usersTop = sortFunc
-        ? draftUsersTop
-            .sort(sortFunc)
-            .map(({ userId }) => userId)
-            .splice(0, 5)
-        : [];
-
-      this.set({
-        rankings: {
-          [gameType]: { rankingMap: { [ranking.code]: { usersTop } } },
-        },
-      });
-
-      rankingsUsersTop.push(...usersTop);
-    }
-    this.set({
-      rankingsUsersTop: rankingsUsersTop.filter((val, idx, arr) => arr.indexOf(val) === idx),
-    });
   }
 });
