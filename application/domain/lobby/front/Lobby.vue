@@ -26,62 +26,15 @@
     </template>
 
     <template v-if="!hideLobbyContent" #menu-item-top>
-      <slot name="menu-item-top">
-        <div class="menu-item-content">
-          <perfect-scrollbar ref="scrollRankings">
-            <div class="rankings">
-              <div v-if="!rankingMenuOpened" class="title">
-                <div>{{ activeRating?.title }}</div>
-                <div v-on:click="rankingMenuOpened = true" class="close" />
-              </div>
-              <div v-if="rankingMenuOpened" class="menu">
-                Выбор рейтинга:
-                <div v-for="game in rankingGameList" :key="game.code" class="menu-game-item">
-                  <h4 class="toggle-game" v-on:click="toggleMenuGameItem({ gameCode: game.code, event: $event })">
-                    <span>Игра "{{ game.title }}"</span>
-                  </h4>
-                  <ul v-if="menuGameItems[game.code]?.open">
-                    <li v-for="ranking in game.rankingList" :key="ranking.title">
-                      <span
-                        class="toggle-ranking"
-                        v-on:click="
-                          rankingMenuOpened = false;
-                          activeRating = {
-                            title: `${ranking.title} (Игра &quot;${game.title}&quot;)`,
-                            headers: ranking.headers,
-                            list: getUsersRankings({ gameType: game.code, usersList: ranking.usersTop }),
-                          };
-                        "
-                        >{{ ranking.title }}</span
-                      >
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div v-if="!rankingMenuOpened" class="content">
-                <PerfectScrollbar>
-                  <table v-if="activeRating">
-                    <tr>
-                      <th v-for="header in activeRatingHeaders" :key="header.code" :code="header.code">
-                        {{ header.title }}
-                      </th>
-                    </tr>
-                    <tr
-                      v-for="(item, idx) in activeRating.list"
-                      :key="idx"
-                      :class="[item.iam ? 'iam' : '', item.noGames ? 'no-games' : '']"
-                    >
-                      <td v-for="header in activeRatingHeaders" :key="header.code + idx" :code="header.code">
-                        {{ item[header.code] }}
-                      </td>
-                    </tr>
-                  </table>
-                </PerfectScrollbar>
-              </div>
-            </div>
-          </perfect-scrollbar>
-        </div>
-      </slot>
+      <div class="menu-item-content">
+        <rankings :lobby="lobby" />
+      </div>
+    </template>
+
+    <template v-if="!hideLobbyContent" #menu-item-rules>
+      <div class="menu-item-content">
+        <rules />
+      </div>
     </template>
 
     <template v-if="!hideLobbyContent" #menu-item-game>
@@ -143,6 +96,9 @@
 <script>
 import { PerfectScrollbar } from 'vue2-perfect-scrollbar';
 
+import rules from './components/rules.vue';
+import rankings from './components/rankings.vue';
+
 import lobby from '~/lib/lobby/front/Lobby.vue';
 import authForm from '~/lib/lobby/front/components/AuthForm.vue';
 import games from '~/lib/lobby/front/components/games.vue';
@@ -154,15 +110,14 @@ export default {
     authForm,
     games,
     tutorial,
+    rules,
     PerfectScrollbar,
+    rankings,
   },
   data() {
     return {
       iframeScr: '',
       hideLobbyContent: false,
-      rankingMenuOpened: true,
-      activeRating: null,
-      menuGameItems: {},
     };
   },
   computed: {
@@ -183,50 +138,8 @@ export default {
       const list = Object.entries(this.lobby.gameServers || {});
       return list.sort((a, b) => (a.disabled && !b.disabled ? 1 : -1));
     },
-    rankingGameList() {
-      return Object.entries(this.lobby?.rankings || {}).map(([code, game]) => ({
-        code,
-        ...this.lobby.gameServers[code],
-        rankingList: Object.entries(game).map(([code, ranking]) => ({ ...ranking, code })),
-      }));
-    },
-    activeRatingHeaders() {
-      return [{ code: 'idx' }, { code: 'player' }].concat(this.activeRating?.headers || []);
-    },
   },
   methods: {
-    toggleMenuGameItem({ gameCode, event }) {
-      if (!this.menuGameItems[gameCode]) this.$set(this.menuGameItems, gameCode, {});
-      const state = !this.menuGameItems[gameCode]?.open;
-      this.$set(this.menuGameItems[gameCode], 'open', state);
-      if (state === true) {
-        this.$nextTick(() => {
-          const game = event.target.closest('.menu-game-item');
-          const scrollTo = game.offsetTop + game.clientHeight;
-          if (this.$refs.scrollRankings.$el.scrollTop < scrollTo) this.$refs.scrollRankings.$el.scrollTop = scrollTo;
-        });
-      }
-    },
-    getUsersRankings({ gameType, usersList = [] }) {
-      const lobbyUsers = this.$root.state.store.lobby[this.state.currentLobby].users || {};
-      const result = usersList.map((userId, idx) => ({
-        idx: idx + 1,
-        ...(lobbyUsers[userId]?.rankings?.[gameType] || {}),
-        player: lobbyUsers[userId]?.name || 'имя не указано',
-        iam: userId === this.state.currentUser,
-      }));
-      if (result.filter((user) => user.iam).length === 0) {
-        const userId = this.state.currentUser;
-        const user = lobbyUsers[userId] || {};
-        result.push({ player: '...' });
-        const iamItem = user.rankings?.[gameType] ? { ...user.rankings[gameType] } : { noGames: true };
-        iamItem.idx = '-';
-        iamItem.iam = true;
-        iamItem.player = user.name || 'игрок (имя не указано)';
-        result.push(iamItem);
-      }
-      return result;
-    },
     updateLobbyState(state) {
       if (this.$refs.lobbyComponent) {
         this.$refs.lobbyComponent.lobbyState = state;
