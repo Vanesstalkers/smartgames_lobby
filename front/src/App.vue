@@ -1,7 +1,11 @@
 <template>
   <div
     id="app"
-    :class="[state.isMobile ? 'mobile-view' : '', state.isLandscape ? 'landscape-view' : 'portrait-view']"
+    :class="[
+      state.isMobile ? 'mobile-view' : '',
+      state.isLandscape ? 'landscape-view' : 'portrait-view',
+      !viewLoaded && isGameRoute ? 'game-loading' : '',
+    ]"
     :current-route="$root.state.currentRoute"
   >
     <button v-if="!state.hideFullscreeBtn" @click="toggleFullscreen" class="fullscreen-btn">
@@ -14,11 +18,8 @@
         Свернуть экран
       </span>
     </button>
-    <div v-if="!viewLoaded" class="error show-with-delay">
-      {{ error }}
-    </div>
     <div v-if="!viewLoaded" class="exit show-with-delay">
-      <button v-on:click="logout">Выйти</button>
+      <button v-on:click="logout">Выйти из лобби</button>
     </div>
     <router-view />
   </div>
@@ -60,6 +61,9 @@ export default {
     },
     viewLoaded() {
       return this.$root.state.viewLoaded;
+    },
+    isGameRoute() {
+      return this.$route && this.$route.path.startsWith('/game');
     },
   },
   methods: {
@@ -120,42 +124,38 @@ body {
   top: 0px;
   height: 100%;
   width: 100%;
+
+  &.game-route {
+    &:after {
+      content: 'Загружается последняя игра...';
+      color: #f4e205;
+      line-height: 36px;
+    }
+  }
 }
 
 #app > .exit {
-  position: absolute;
-  bottom: 0px;
   width: 100%;
-  color: white;
-  background: #cccccc80;
-  padding: 20px;
-  font-size: 20px;
-}
+  > button {
+    width: 110px;
+    padding: 2px 0px;
+    border-radius: 4px;
+    border: 1px solid #f4e205;
+    background: transparent;
+    color: #f4e205;
 
-#app > .exit > button {
-  background: #ccc;
-  border: none;
-  font-size: 20px;
-  padding: 4px 40px;
-}
-
-#app > .exit > button:hover {
-  cursor: pointer;
-  opacity: 0.8;
-}
-
-#app > .error {
-  color: white;
-  background: #ff000080;
-  padding: 20px;
-  font-size: 20px;
+    &:hover {
+      cursor: pointer;
+      opacity: 0.8;
+    }
+  }
 }
 
 .fullscreen-btn {
   position: fixed !important;
   z-index: 1000;
   font-size: 10px;
-  left: 170px;
+  left: 20px;
   top: 10px;
   width: 110px;
   color: #f4e205;
