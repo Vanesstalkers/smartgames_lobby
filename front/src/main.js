@@ -111,70 +111,9 @@ const init = async () => {
     return next();
   });
 
-  const mixin = {
-    methods: {
-      // универсальный метод (не только для игр)
-      async initSession(config, handlers) {
-        if (arguments.length < 2) {
-          handlers = config;
-          config = {};
-        }
-        const { success: onSuccess, error: onError } = handlers;
-
-        const token = localStorage.getItem(window.tokenName);
-        const session =
-          (await api.action
-            .public({
-              path: 'user.api.initSession',
-              args: [{ token, windowTabId: window.name, ...config }],
-            })
-            .catch(async (err) => {
-              if (typeof onError === 'function') await onError(err);
-            })) || {};
-        if (session.newUser && typeof onError === 'function') await onError(); // отработает lobbyDataLoaded = true
-
-        const { token: sessionToken, userId } = session;
-
-        this.$set(this.$root.state, 'currentToken', sessionToken);
-        if (sessionToken && sessionToken !== token) localStorage.setItem(window.tokenName, sessionToken);
-        if (userId) {
-          this.$set(this.$root.state, 'currentUser', userId);
-          if (typeof onSuccess === 'function') await onSuccess(session);
-        }
-
-        return session;
-      },
-      async initSessionIframe() {
-        const searchParams = new URLSearchParams(document.location.search);
-        const userId = searchParams.get('userId');
-        const lobbyId = searchParams.get('lobbyId');
-        const token = searchParams.get('token');
-
-        await api.action.public({
-          path: 'user.api.initSession',
-          args: [
-            {
-              ...{ token, userId, lobbyId },
-              windowTabId: window.name,
-            },
-          ],
-        });
-
-        this.$set(this.$root.state, 'currentUser', userId);
-        this.$set(this.$root.state, 'currentLobby', lobbyId);
-        this.$set(this.$root.state, 'lobbyOrigin', searchParams.get('lobbyOrigin'));
-
-        if (window !== window.parent) {
-          const iframeCode = searchParams.get('iframeCode');
-          window.parent.postMessage({ emit: { name: 'iframeAlive', data: { iframeCode } } }, '*');
-        }
-      },
-    },
-  };
   window.state = state;
   window.app = new Vue({
     router,
-    mixins: [mixin],
     data: { state },
     render(h) {
       return h(App);
