@@ -23,6 +23,9 @@
   updateRankings() {
     // do nothing
   }
+  checkRatings(){
+    // do nothing
+  }
 
   async processData(data, broadcasterChannelName) {
     const lobbyMap = data.lobby;
