@@ -10,14 +10,50 @@
 
           const $item = $root.querySelector('.menu-item.info.pinned');
           if (!$item) $root.querySelector('.menu-item.info > label')?.click();
-        }
+        },
+        'open-lobby-release': (data) => {
+          const { $root } = data;
+          $root.querySelector('.game-release')?.click();
+          return { exit: true };
+        },
+        'open-lobby-auto': (data) => {
+          const { $root } = data;
+          $root.querySelector('.game-auto')?.click();
+          return { exit: true };
+        },
       },
       buttons: [
-        { text: 'Расскажи про бизнес-игры <a>для ИТ</a>', link: 'https://release.smartgames.studio/#/rules' },
-        { text: 'Проведи <a>демонстрацию</a> игр <a>для ИТ</a>', action: 'changeTutorial', tutorial: 'lobby-tutorial-menuGameReleaseCorporate', step: 'initFromSales' },
-        { text: 'Расскажи про бизнес-игры <a>для автодилеров</a>', link: 'https://auto.smartgames.studio/#/rules' },
-        { text: 'Проведи <a>демонстрацию</a> игр <a>для автобизнеса</a>', action: 'changeTutorial', tutorial: 'lobby-tutorial-menuGameAutoPoker', step: 'initFromSales' },
-        { text: 'Назад', action: 'exit' },
+        {
+          text: 'Расскажи про бизнес-игры <a>для ИТ</a>',
+          link: 'https://release.smartgames.studio/#/rules',
+          key: null,
+        },
+        {
+          text: 'Проведи <a>демонстрацию</a> игр <a>для ИТ</a>',
+          action: 'open-lobby-release',
+          icon: 'fa-solid fa-play',
+        },
+        {
+          text: 'Расскажи про бизнес-игры <a>для автодилеров</a>',
+          link: 'https://auto.smartgames.studio/#/rules',
+          icon: 'fa-solid fa-book',
+        },
+        {
+          text: 'Проведи <a>демонстрацию</a> игр <a>для автобизнеса</a>',
+          action: 'open-lobby-auto',
+          icon: 'fa-solid fa-play',
+        },
+        {
+          text: 'Расскажи про бизнес-игры <a>для банков</a>',
+          link: 'https://bank.smartgames.studio/#/rules',
+          icon: 'fa-solid fa-book',
+        },
+        {
+          text: 'Проведи <a>демонстрацию</a> игр <a>для банков</a>',
+          action: 'open-lobby-bank',
+          icon: 'fa-solid fa-play',
+        },
+        { text: 'Назад', action: 'exit', icon: 'fa-solid fa-arrow-left' },
       ],
     },
     delivery: {

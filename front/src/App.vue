@@ -193,7 +193,7 @@ body {
 }
 
 .show-with-delay {
-  animation: 2s fadeIn;
+  animation: 5s fadeIn;
   animation-fill-mode: forwards;
   visibility: hidden;
 }

@@ -398,7 +398,7 @@ export default {
   }
 }
 
-.hide-lobby-content #lobby > *:not(iframe, .iframe-bg, .iframe-close-btn, #bg-img) {
+.hide-lobby-content #lobby > *:not(iframe, .iframe-bg, .iframe-close-btn) {
   display: none;
 }
 </style>

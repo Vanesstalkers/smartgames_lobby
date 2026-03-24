@@ -16,7 +16,7 @@
     games: {
       initialStep: true,
       text: `
-        Это игровые колоды с несколькими вариантами игр для каждой. <a>Рекомендую пройти отдельные обучения по конкретным колодам.</a>
+        Это доступные на портале игры. <a>По ссылке откроется отдельное лобби</a>, в котором можно будет узнать больше подробностей и присоединиться к игре.
       `,
       actions: { before: async (data) => await data.utils.showGamesBlock(data) },
       active: { selector: '.select-btn.wait-for-select:not(.disabled)', css: { boxShadow: '0px 0px 10px 4px white' } },

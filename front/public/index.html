@@ -7,16 +7,49 @@
     <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
     <title>SmartGames.Studio</title>
     <style>
-      html {
-        background: url('./bg.png');
-        background-size: cover;
+      html,
+      body {
+        height: 100%;
       }
+
+      html {
+        position: relative;
+        background-color: #10131a;
+      }
+
+      html::before,
+      html::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      html::before {
+        background-image: url('./bg-lobby-lqip.png');
+        filter: grayscale(1) opacity(0.2);
+      }
+
+      html::after {
+        background-image: url('./bg-lobby.png');
+        filter: grayscale(1);
+        opacity: 0;
+        transition: opacity 360ms ease-in-out;
+      }
+
+      html.bg-ready::after {
+        opacity: 1;
+      }
+
       body {
         font-family: 'Conv_segoeuil';
         font-size: 13px;
         overflow: hidden;
         position: relative;
-        height: 100%;
         width: 100%;
         margin: 0px;
       }
@@ -37,6 +70,15 @@
     </script>
     <noscript><div><img src="https://mc.yandex.ru/watch/97055512" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     <!-- /Yandex.Metrika counter -->
+    <script>
+      (function preloadBackground() {
+        var image = new Image();
+        image.src = './bg.png';
+        image.onload = function onBackgroundLoaded() {
+          document.documentElement.classList.add('bg-ready');
+        };
+      })();
+    </script>
   </head>
   <body>
     <noscript>
