@@ -31,6 +31,7 @@
         {
           text: 'Расскажи про бизнес-игры <a>для ИТ</a>',
           link: 'https://release.smartgames.studio/#/rules',
+          icon: 'fa-solid fa-book',
           key: null,
         },
         {
