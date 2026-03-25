@@ -17,10 +17,8 @@
       return await method(context, ...args);
     } catch (err) {
       if (err === 'new_user') {
-        console.info('new_user');
         return { status: 'ok', newUser: true };
-      }
-      else console.log(err);
+      } else console.error(err);
 
       context.client.emit('action/emit', {
         eventName: 'alert',
