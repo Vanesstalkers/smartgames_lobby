@@ -216,18 +216,6 @@ export default {
             title: 'Стартовое приветствие',
             action: { tutorial: 'lobby-tutorial-start' },
           },
-          {
-            title: 'Игровая комната',
-            action: { tutorial: 'lobby-tutorial-menuGame' },
-          },
-          {
-            title: 'Корпоративные игры в тематике ИТ',
-            action: { tutorial: 'lobby-tutorial-menuGameReleaseCorporate' },
-          },
-          {
-            title: 'Корпоративные игры для автобизнеса',
-            action: { tutorial: 'lobby-tutorial-menuGameAutoPoker' },
-          },
         ],
       });
 

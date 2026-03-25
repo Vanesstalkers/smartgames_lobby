@@ -1,17 +1,6 @@
 (class SmartGamesLobby extends lib.lobby.Class() {
   gameServers = {};
   gameServerChannels = {};
-  // rankingSortFunc = {
-  //   'release.richestPlayers': (a, b) => ((a.money || -1) > (b.money || -1) ? -1 : 1),
-  //   'release.topPlayers': (a, b) => ((a.games || -1) > (b.games || -1) ? -1 : 1),
-  //   // 'release.topFreelancers': null,
-  //   'release.bestQuality': (a, b) => ((a.crutch || -1) / (a.games || -1) < (b.crutch || -1) / (b.games || -1) ? -1 : 1),
-  //   'release.bestT2M': (a, b) => ((a.avrTime || -1) < (b.avrTime || -1) ? -1 : 1),
-  //   'car.richestPlayers': (a, b) => ((a.money || -1) > (b.money || -1) ? -1 : 1),
-  //   'car.topPlayers': (a, b) => ((a.games || -1) > (b.games || -1) ? -1 : 1),
-  //   'bank.richestPlayers': (a, b) => ((a.money || -1) > (b.money || -1) ? -1 : 1),
-  //   'bank.topPlayers': (a, b) => ((a.games || -1) > (b.games || -1) ? -1 : 1),
-  // };
 
   #telegramBot;
   #midjourneyClient;
