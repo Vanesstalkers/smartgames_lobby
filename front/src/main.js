@@ -117,12 +117,8 @@ const init = async () => {
       alert(data, config) {
         window.prettyAlert(data, config);
       },
-      logout() {
-        window.app.$set(window.app.$root.state, 'currentUser', '');
-        localStorage.removeItem(window.tokenName);
-        router.push({ path: '/' }).catch((err) => {
-          console.log(err);
-        });
+      returnToLobby() {
+        router.push({ path: '/' }).catch((err) => console.error(err));
       },
     },
   };
@@ -176,8 +172,17 @@ const init = async () => {
     const { path, args, routeTo, emit } = e.data;
 
     if (path && args) {
-      return await api.action.call({ path, args });
+      const result = await api.action.call({ path, args }).catch((err) => window.prettyAlert(err));
+      
+      if (result?.returnToLobby === true) {
+        return router.push({ path: '/' }).catch((err) => location.reload());
+      }
+      if (result?.logout === true) {
+        return await api.action.call({ path: 'lobby.api.logout' }).catch(window.prettyAlert);
+      }
+      return result;
     }
+
 
     if (routeTo) {
       return router.push({ path: routeTo }).catch((err) => {
