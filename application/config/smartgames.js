@@ -1,3 +1,4 @@
 ({
   appCode: 'smartgamesPortal',
+  telegramEnabled: false,
 });
