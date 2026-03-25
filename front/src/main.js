@@ -33,8 +33,28 @@ const init = async () => {
   window.api = api;
   await metacom.load('action');
 
-  if (window !== window.parent) {
-    window.parent.postMessage({ emit: { name: 'iframeAlive' } }, '*');
+  class StoreQueue {
+    constructor(getTarget) {
+      this.queue = [];
+      this.processing = false;
+      this.getTarget = getTarget;
+    }
+
+    push(data) {
+      this.queue.push(data);
+      this.process();
+    }
+
+    process() {
+      if (this.processing || this.queue.length === 0) return;
+      this.processing = true;
+      const data = this.queue.shift();
+      mergeDeep({ target: this.getTarget(), source: data });
+      this.processing = false;
+      if (this.queue.length > 0) {
+        Promise.resolve().then(() => this.process());
+      }
+    }
   }
   window.iframeEvents = [];
 
@@ -50,7 +70,7 @@ const init = async () => {
     store: {},
     emit: {
       updateStore(data) {
-        mergeDeep({ target: state.store, source: data });
+        storeQueue.push(data);
       },
       alert(data, config) {
         window.prettyAlert(data, config);
