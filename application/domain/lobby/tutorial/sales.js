@@ -21,6 +21,11 @@
           $root.querySelector('.game-auto')?.click();
           return { exit: true };
         },
+        'open-lobby-bank': (data) => {
+          const { $root } = data;
+          $root.querySelector('.game-bank')?.click();
+          return { exit: true };
+        },
       },
       buttons: [
         {
