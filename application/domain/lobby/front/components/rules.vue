@@ -89,9 +89,6 @@ export default {
       if (!pdfLink?.path) return '';
       if (pdfLink.path.startsWith('http')) return pdfLink.path;
 
-      // Чтобы сохранить текущую бизнес-логику отображения bank pdf
-      if (deck === 'bank') return `${this.state.serverOrigin}${pdfLink.path}`;
-
       const serverUrl = this.lobby.gameServers?.[deck]?.serverUrl || '';
       return `${serverUrl}${pdfLink.path}`;
     },
