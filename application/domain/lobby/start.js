@@ -1,11 +1,18 @@
 async () => {
+  const smartgamesURL = `https://smartgames.studio`;
+
+  lib.lobby.__gameServerConfig = {
+    url: lib.lobby.__devMode ? 'http://localhost:8080' : smartgamesURL,
+    serverUrl: lib.lobby.__devMode ? `http://localhost:${config.server.ports[0]}` : `${smartgamesURL}/api`,
+    smartgamesServerUrl: lib.lobby.__devMode ? `http://localhost:8800` : `${smartgamesURL}/api`,
+  };
+
   if (application.worker.id === 'W1') {
     db.redis.handlers.afterStart({
       flushDB: async () => {
         await db.redis.flushDb(); // тут список игроков online и список загруженных игр
       },
     });
-
     db.mongo.handlers.afterStart({
       initTelegram: async () => {
         if (config.smartgames.telegramEnabled) {
