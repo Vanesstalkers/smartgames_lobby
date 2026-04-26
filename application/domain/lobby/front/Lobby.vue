@@ -135,7 +135,8 @@ export default {
       return this.store.lobby?.[this.state.currentLobby] || {};
     },
     gamesList() {
-      const list = Object.entries(this.lobby.gameServers || {});
+      const deckOrder = ['billion', 'release', 'auto', 'bank'];
+      const list = Object.entries(this.lobby.gameServers).sort((a, b) => deckOrder.indexOf(b[0]) - deckOrder.indexOf(a[0]));
       return list.sort((a, b) => (a.disabled && !b.disabled ? 1 : -1));
     },
   },
@@ -213,8 +214,8 @@ export default {
       const fillTutorials = tutorials({
         showList: [
           {
-            title: 'Стартовое приветствие',
-            action: { tutorial: 'lobby-tutorial-start' },
+            title: 'Обзорная экскурсия по порталу ',
+            action: { tutorial: 'lobby-tutorial-tour' },
           },
         ],
       });
@@ -388,5 +389,9 @@ export default {
 
 .hide-lobby-content #lobby > *:not(iframe, .iframe-bg, .iframe-close-btn) {
   display: none;
+}
+
+.menu-item-content.games .game-types {
+  flex-wrap: wrap !important;
 }
 </style>

@@ -2,11 +2,7 @@
   <perfect-scrollbar>
     <div class="rules">
       <ul v-if="rulesSections && rulesSections.length">
-        <li
-          v-for="(section, sectionIndex) in rulesSections"
-          :key="`${section.deck}-${sectionIndex}`"
-          class="disabled"
-        >
+        <li v-for="(section, sectionIndex) in rulesSections" :key="`${section.deck}-${sectionIndex}`" class="disabled">
           <label class="not-disabled">{{ section.title }}</label>
           <div>{{ section.description }}</div>
 
@@ -25,14 +21,11 @@
                 :key="galleryIndex"
                 class="gallery"
                 v-on:click="showGallery(section.deck, galleryItem.selectGroup)"
-              >{{ galleryItem.label }}</span
+                >{{ galleryItem.label }}</span
               ><br v-if="section.galleries && section.galleries.length" />
             </li>
 
-            <li
-              v-for="(pdfLink, pdfIndex) in (section.pdfLinks || []).slice(1)"
-              :key="pdfIndex"
-            >
+            <li v-for="(pdfLink, pdfIndex) in (section.pdfLinks || []).slice(1)" :key="pdfIndex">
               <label>
                 <a :href="getPdfHref(section.deck, pdfLink)" target="_blank">{{ pdfLink.label }}</a>
               </label>
@@ -95,31 +88,37 @@ export default {
 
     async loadRulesSections() {
       const gameServers = this.lobby.gameServers || {};
-      const deckOrder = ['release', 'auto', 'bank'];
+      const deckOrder = ['billion', 'release', 'auto', 'bank'];
 
       const decks = [
         ...deckOrder.filter((d) => !!gameServers?.[d]?.serverUrl),
         ...Object.keys(gameServers).filter((d) => !deckOrder.includes(d) && !!gameServers?.[d]?.serverUrl),
       ];
 
+      const promises = [];
       const sections = [];
       for (const deck of decks) {
-        const serverOrigin = gameServers[deck]?.serverUrl;
-        if (!serverOrigin) continue;
+        const promise = new Promise(async (resolve, reject) => {
+          const serverOrigin = gameServers[deck]?.serverUrl;
+          if (!serverOrigin) return resolve();
 
-        try {
-          const data = await this.fetchActionPublic({
-            serverOrigin,
-            path: 'game.api.getRules',
-            args: [],
-          });
-          const serviceRules = data?.result?.rules || [];
+          try {
+            const data = await this.fetchActionPublic({
+              serverOrigin,
+              path: 'game.api.getRules',
+              args: [],
+            });
+            const serviceRules = data?.result?.rules || [];
 
-          serviceRules.forEach((section) => sections.push({ deck, ...section }));
-        } catch (err) {
-          console.error(`Failed to load rules for deck="${deck}"`, err);
-        }
+            serviceRules.forEach((section) => sections.push({ deck, ...section }));
+          } catch (err) {
+            console.error(`Failed to load rules for deck="${deck}"`, err);
+          }
+          resolve();
+        });
+        promises.push(promise);
       }
+      Promise.all(promises);
 
       this.rulesSections = sections;
     },
@@ -212,4 +211,3 @@ export default {
   }
 }
 </style>
-
