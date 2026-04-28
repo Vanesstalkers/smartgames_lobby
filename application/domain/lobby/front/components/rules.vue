@@ -20,7 +20,7 @@
                 v-for="(galleryItem, galleryIndex) in section.galleries || []"
                 :key="galleryIndex"
                 class="gallery"
-                v-on:click="showGallery(section.deck, galleryItem.selectGroup)"
+                v-on:click="showGallery(section.deck, galleryItem)"
                 >{{ galleryItem.label }}</span
               ><br v-if="section.galleries && section.galleries.length" />
             </li>
@@ -123,14 +123,14 @@ export default {
       this.rulesSections = sections;
     },
 
-    async showGallery(deck, selectGroup) {
+    async showGallery(deck, { selectGroup, unique }) {
       const { serverUrl: serverOrigin } = this.lobby.gameServers[deck] || {};
       if (!serverOrigin) return;
 
       const data = await this.fetchActionPublic({
         serverOrigin,
         path: 'game.api.cards',
-        args: [{ selectGroup: selectGroup ?? null }],
+        args: [{ selectGroup: selectGroup ?? null, unique }],
       });
 
       const images = data?.result?.cards || [];
